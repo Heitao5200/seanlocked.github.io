@@ -463,6 +463,24 @@ mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --fork
 mongo
 ```
 
+如果需要外部连接mongo，加上bind_ip 0.0.0.0来启动
+
+```
+mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --bind_ip 0.0.0.0 --fork
+```
+
+关闭mongodb服务
+
+```
+mongo --shutdown /var/lib/mongo
+
+#or
+ps -ef | grep mongo
+kill 进程
+```
+
+
+
 
 
 # 4.redis安装
@@ -682,6 +700,16 @@ class MysqlServer(object):
         self.loginfo_db_name = loginfo_db_name
 ```
 
+\home\fun-rec\codes\news_recsys\news_rec_server
+
+后端还需要在news_rec_server下新建一个logs文件夹
+
+```bash
+mkdir logs
+```
+
+
+
 
 
 # 9.前后端环境启动
@@ -708,6 +736,7 @@ mysql -uroot -p
 
 ```
 create database userinfo;
+create database loginfo;
 ```
 
 
@@ -830,3 +859,10 @@ python offline.py
 终于踩坑结束
 
 ![image-20211214170619233](新闻推荐系统实战.assets/image-20211214170619233.png)
+
+
+
+# 11.遗留问题
+
+把数据库清空重建，还是会出现登录后刷新没有数据的情况，估摸着是redis里面没有数据的问题，部署就到这里吧，开始看代码了
+
