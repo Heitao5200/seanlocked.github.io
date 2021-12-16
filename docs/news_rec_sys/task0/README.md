@@ -170,7 +170,7 @@ sudo service mysql status
 
 
 
-## 1.2 配置MySQL的安全性
+## 2.2配置MySQL的安全性
 
 1. 首先，运行命令`mysql_secure_installation`：
 
@@ -285,7 +285,7 @@ sudo service mysql status
 
 
 
-## 1.3 以root用户登录
+## 2.3以root用户登录
 
 在MySQL 8.0上，root 用户默认通过`auth_socket`插件授权。`auth_socket`插件通过 Unix socket 文件来验证所有连接到`localhost`的用户。
 
@@ -393,6 +393,90 @@ mysql>
 
 说明：`'admin'@'localhost'`中，`localhost`指本地才可连接，可以将其换成`%`指任意`ip`都能连接，也可以指定`ip`连接。
 
+## 2.4使root用户能够远程登录
+
+mysql8真的是太恶心了！！因为网上很多教程都是教mysql5的
+
+首先你要去改/etc/mysql/my.cnf下mysql的配置文件
+
+然后你会发现是空的
+
+```
+#
+# The MySQL database server configuration file.
+#
+# You can copy this to one of:
+# - "/etc/mysql/my.cnf" to set global options,
+# - "~/.my.cnf" to set user-specific options.
+# 
+# One can use all long options that the program supports.
+# Run program with --help to get a list of available options and with
+# --print-defaults to see which it would actually understand and use.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+#
+# * IMPORTANT: Additional settings that can override those from this file!
+#   The files must end with '.cnf', otherwise they'll be ignored.
+#
+
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/
+```
+
+但其实不然
+
+其实文件不是空的。它有两个相当重要的指令，即
+
+```
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/
+```
+
+这些行表示可以在列出的目录中找到**其他**配置文件（在这种情况下为.cnf）：
+
+```
+/etc/mysql/conf.d/
+/etc/mysql/mysql.conf.d/
+```
+
+这两个目录中的后一个目录应包含**mysqld.cnf**。换句话说，适当的配置文件应为：
+
+```
+/etc/mysql/mysql.conf.d/mysqld.cnf
+```
+
+也就是原来mysql5里面mysqld的配置
+
+```
+xxxx
+[mysqld]
+xxxxxxxx
+xxxxx
+xx
+```
+
+这些内容放到了/etc/mysql/mysql.conf.d/mysqld.cnf中
+
+然后修改这个文件里面的bind_ip = 127.0.0.1修改为bind_ip = 0.0.0.0
+
+然后
+
+```bash
+mysql -uroot -p
+
+use mysql
+alter user 'root'@'localhost' identified with mysql_native_password by '你的密码';
+select host,user from user;
+
+#发现root的host是localhost，只允许本地访问
+update user set host='%' where user='root';
+flush privileges;
+```
+
+
+
 
 
 # 3.mongodb安装
@@ -485,6 +569,8 @@ kill 进程
 
 # 4.redis安装
 
+## 4.1在线安装
+
 本项目是基于Ubuntu环境进行开发，因此接下来都以Ubuntu的环境为基础，对于其他开发环境，大家可以参考相关的[资料](https://www.redis.com.cn/redis-installation.html)进行学习。
 
 **安装Redis服务器：**
@@ -524,6 +610,41 @@ redis-cli
 ![image-20211030164455928](新闻推荐系统实战.assets/图片image-20211030164455928.png)
 
 上面的127.0.0.1 是redis服务器的 IP 地址，6379 是 Redis 服务器运行的端口。
+
+
+
+## 4.2使用远程连接redis
+
+首先修改配置文件
+
+在/etc/redis/redis.conf
+
+```
+vim redis.conf
+
+#改两个地方
+#1\注释掉bind_ip
+#bind_ip = 127.0.0.1
+
+#2\requirepass
+requirepass 你的密码
+```
+
+vim下查找字符串指令
+
+esc
+
+/字符串 enter n为下一个
+
+到要改的地方i
+
+关闭redis
+
+```bash
+ps -ef | grep redis
+redis-cli shutdown
+/etc/init.d/redis-server stop
+```
 
 
 
