@@ -646,6 +646,12 @@ redis-cli shutdown
 /etc/init.d/redis-server stop
 ```
 
+开启redis服务
+
+```
+redis-server /etc/redis/redis.conf
+```
+
 
 
 # 5.node安装
@@ -896,11 +902,9 @@ cnpm install一下之后再npm run dev就好了
 
 ## 9.4服务器防火墙设置
 
-把8686、3000端口开了
+把8686、3000、27017、3306、6379端口开了
 
-![image-20211214155447560](新闻推荐系统实战.assets/image-20211214155447560.png)
-
-
+![image-20211217085922677](README.assets/image-20211217085922677.png)
 
 ## 9.5访问
 
