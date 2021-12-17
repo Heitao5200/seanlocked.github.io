@@ -459,7 +459,7 @@ xx
 
 这些内容放到了/etc/mysql/mysql.conf.d/mysqld.cnf中
 
-然后修改这个文件里面的bind_ip = 127.0.0.1修改为bind_ip = 0.0.0.0
+然后修改这个文件里面的bind_address = 127.0.0.1修改为bind_address = 0.0.0.0
 
 然后
 
@@ -792,10 +792,20 @@ dao_config.py
 
 ```python
 # 修改mysql账号密码
-mysql_username = "xxxxx"
-mysql_passwd = "xxxxxxxxx"
+mysql_username = "你的mysql账户"
+mysql_passwd = "你的mysql密码"
 mysql_hostname = "localhost"
 mysql_port = "3306"
+
+#修改redis密码
+redis_hostname = "127.0.0.1"
+redis_port = 6379
+password = '你的redis密码'
+
+reclist_redis_db_num = 0
+static_news_info_db_num = 1
+dynamic_news_info_db_num = 2
+user_exposure_db_num = 3
 ```
 
 proj_path.py
@@ -826,6 +836,42 @@ class MysqlServer(object):
         self.user_info_db_name = user_info_db_name
         self.loginfo_db_name = loginfo_db_name
 ```
+
+
+
+redis_server.py
+
+```python
+import sys
+sys.path.append("../")
+import redis 
+#导包的时候增加password
+from conf.dao_config import redis_hostname, redis_port, static_news_info_db_num, dynamic_news_info_db_num, reclist_redis_db_num, password
+from conf.dao_config import user_exposure_db_num
+
+
+class RedisServer(object):
+    #init增加一个_password=password
+    def __init__(self, _redis_hostname=redis_hostname, _port=redis_port, _static_news_info_db_num=static_news_info_db_num,
+        _dynamic_news_info_db_num = dynamic_news_info_db_num, _reclist_redis_db_num=reclist_redis_db_num,
+        _user_exposure_db_num=user_exposure_db_num, _password=password):
+        #增加一个self.password
+        self.hostname = _redis_hostname
+        self.port = _port
+        self.static_news_info_db_num = _static_news_info_db_num
+        self.dynamic_news_info_db_num = _dynamic_news_info_db_num
+        self.reclist_redis_db_num = _reclist_redis_db_num
+        self.user_exposure_db_num = _user_exposure_db_num
+        self.password = _password
+
+    def _redis_db(self, db_num=0):
+        #增加password参数
+        res_db = redis.StrictRedis(host=self.hostname, port=self.port, password=self.password, db=db_num, decode_responses=True)
+        return res_db
+
+```
+
+
 
 \home\fun-rec\codes\news_recsys\news_rec_server
 
@@ -912,6 +958,15 @@ cnpm install一下之后再npm run dev就好了
 
 
 
+## 9.6nohub后台挂起服务
+
+```bash
+#还没试过，不过应该要先创建这个文件我感觉
+nohub python server.py >> /home/fun-rec/log/my.log
+```
+
+
+
 # 10.Scrapy爬虫设置
 
 
@@ -990,4 +1045,128 @@ python offline.py
 # 11.遗留问题
 
 把数据库清空重建，还是会出现登录后刷新没有数据的情况，估摸着是redis里面没有数据的问题，部署就到这里吧，开始看代码了
+
+
+
+# 12.定时进行物料更新
+
+这个要修改几个sh，把python路径改一下，home_path路径改一下
+
+/home/fun-rec/codes/news_recsys/news_rec_server/scheduler
+
+vim crawl_news.sh
+
+```shell
+#!/bin/bash
+# python 环境需要换成自己的虚拟环境中的Python
+python=/root/anaconda3/envs/news_rec_py3/bin/python
+home_path=/home
+
+news_recsys_path=${home_path}"/fun-rec/codes/news_recsys/news_rec_server"
+
+# 得跳转到这个目录才能执行下面爬虫的命令
+cd ${news_recsys_path}/materials/news_scrapy
+
+# 系统正式运行的时候需要修改pages的值
+pages=30
+min_news_num=1000
+
+echo "$(date -d today +%Y-%m-%d-%H-%M-%S)"
+# 爬虫
+${python} ${news_recsys_path}/materials/news_scrapy/sinanews/run.py  --pages=${pages}
+if [ $? -eq 0 ]; then
+    echo "scrapy crawl sina_spider --pages ${page} success."
+else
+    echo "scrapy crawl sina_spider --pages ${page} fail."
+fi
+
+
+# 检查今天爬取的数据是否少于min_news_num篇文章，这里也可以配置邮件报警
+${python} ${news_recsys_path}/materials/news_scrapy/monitor_news.py ${min_news_num}
+if [ $? -eq 0 ]; then
+    echo "run python monitor_news.py success."
+else
+    echo "run python monitor_news.py fail."
+fi
+```
+
+
+
+vim offline_material_and_user_process.sh
+
+```shell
+#!/bin/bash
+# python 环境需要换成自己的虚拟环境中的Python
+python=/root/anaconda3/envs/news_rec_py3/bin/python
+home_path=/home
+news_recsys_path=${home_path}"/fun-rec/codes/news_recsys/news_rec_server"
+
+echo "$(date -d today +%Y-%m-%d-%H-%M-%S)"
+
+# 为了更方便的处理路径的问题，可以直接cd到我们想要运行的目录下面
+cd ${news_recsys_path}/materials
+
+# 更新物料画像
+${python} process_material.py
+if [ $? -eq 0 ]; then
+    echo "process_material success."
+else
+    echo "process_material fail."
+fi
+
+# 更新用户画像
+${python} process_user.py
+if [ $? -eq 0 ]; then
+    echo "process_user.py success."
+else
+    echo "process_user.py fail."
+fi
+
+# 清除前一天redis中的数据，更新最新今天最新的数据
+${python} update_redis.py
+if [ $? -eq 0 ]; then
+    echo "update_redis success."
+else
+    echo "update_redis fail."
+fi
+
+
+echo " "
+```
+
+
+
+vim run_offline.sh
+
+```shell
+#!/bin/bash
+
+# python 环境需要换成自己的虚拟环境中的Python
+python=/root/anaconda3/envs/news_rec_py3/bin/python
+home_path=/home
+news_recsys_path=${home_path}"/fun-rec/codes/news_recsys/news_rec_server"
+
+cd ${news_recsys_path}/recprocess
+
+echo "$(date -d today +%Y-%m-%d-%H-%M-%S)"
+
+# 离线将推荐列表和热门列表存入redis
+${python} offline.py
+if [ $? -eq 0 ]; then
+    echo "run ${python} ${news_recsys_path}/recprocess/offline.py success."
+else
+    echo "run ${python} ${news_recsys_path}/recprocess/offline.py fail."
+fi
+
+echo " "
+```
+
+
+
+**每天0点爬取前一天的内容，爬取完数据再更新特征库，更新完特征库之后再更新用户的画像，然后将redis中所有数据都清空，将特征库中的前端展示信息存入redis**
+配置crontab命令，命令行输入crontab -e，然后将下面命令的输入到crontab命令行中
+
+```shell
+0 0 * * * $HOME/fun-rec/codes/news_recsys/news_rec_server/scheduler/crawl_news.sh >>  $HOME/fun-rec/codes/news_recsys/news_rec_server/logs/offline_material_process.log && $HOME/fun-rec/codes/news_recsys/news_rec_server/scheduler/offline_material_and_user_process.sh >> $HOME/fun-rec/codes/news_recsys/news_rec_server/logs/material_and_user_process.log && $HOME/fun-rec/codes/news_recsys/news_rec_server/scheduler/run_offline.sh >> $HOME/fun-rec/codes/news_recsys/news_rec_server/logs/offline_rec_list_to_redis.log
+```
 
