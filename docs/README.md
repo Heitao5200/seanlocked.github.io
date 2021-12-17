@@ -16,7 +16,7 @@
 
 * 深入理解计算机系统
     * Task0 计算机系统漫游
-    * Task1 
+    * Task1 信息的表示和处理
     * Task2 
     * Task3 
     * Task4 
