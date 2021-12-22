@@ -1,1322 +1,822 @@
 # 数据库的基本使用
 
-本章节主要记录三种数据库的使用MySQL、mongoDB、Redis
+# Mysql学习
 
+## Mysql介绍
 
+MySQL为关系型数据库(Relational Database Management System), 这种所谓的"关系型"可以理解为"表格"的概念, 一个关系型数据库由一个或数个表格组成，关联数据库将数据保存在不同的表中，而不是将所有数据放在一个大仓库内，这样就增加了速度并提高了灵活性。
 
-## 1.MySQL
+主要特点：
 
-使用的话直接看基础语法即可
+- MySQL 使用标准的 SQL 数据语言形式。
+- MySQL 支持大型数据库，支持 5000 万条记录的数据仓库，32 位系统表文件最大可支持 4GB，64 位系统支持最大的表文件为8TB。
+- MySQL 是可以定制的，采用了 GPL 协议，你可以修改源码来开发自己的 MySQL 系统。
 
-需要练习的朋友可以直接跳转我下面的连接，我之前整理我在自学sql网上的题目答案，不用配环境直接就可以做题很方便
+## MySQL基本操作
 
-https://zhuanlan.zhihu.com/p/348330806
+1. 登录数据库：`mysql -u root -p   password`
 
-### 1.1SQL书写规范
+2. MySQL 创建数据库：`CREATE DATABASE 数据库名;`
 
-在写SQL语句时，要求按照如下规范进行：
+3. 删除数据库：`drop database <数据库名>;`
 
-+ SQL 语句要以分号（;）结尾
-+ SQL 不区分关键字的大小写 ，这对于表名和列名同样适用。
-+ 插入到表中的数据是区分大小写的。例如，数据Computer、COMPUTER 或computer，三者是不一样的。
-+ 常数的书写方式是固定的，在SQL 语句中直接书写的字符串、日期或者数字等称为常数。常数的书写方式如下所示。
+4. 选择数据库：`use  <数据库名>;`
 
-  + SQL 语句中含有字符串的时候，需要像'abc'这样，使用单引号（'）将字符串括起来，用来标识这是一个字符串。
-  + SQL 语句中含有日期的时候，同样需要使用单引号将其括起来。日期的格式有很多种（'26 Jan 2010' 或者'10/01/26' 等）。
-  + 在SQL 语句中书写数字的时候，不需要使用任何符号标识，直接写成1000 这样的数字即可。
-+ 单词之间需要用半角空格或者换行来分隔。
-+ SQL中的注释主要采用`--`和`/* ... */`的方式，第二种方式可以换行。在MySQL下，还可以通过`#`来进行注释。
+5. 创建数据表：`CREATE TABLE table_name (column_name column_type);`
 
+6. 删除数据表：`DROP TABLE table_name ;`
 
+7. 数据表插入数据：
 
-### 1.2 命名规则
+   ```
+   INSERT INTO table_name ( field1, field2,...fieldN )
+                          VALUES
+                          ( value1, value2,...valueN );
+   ```
 
-+ 在数据库中，只能使用半角英文字母、数字、下划线（_）作为数据库、表和列的名称 。
-+ 名称必须以半角英文字母作为开头。
-+ 名称不能重复，同一个数据库下不能有2张相同的表。
-
-
-
-### 1.3. 数据类型
-
-MySQL 支持所有标准 SQL 数值数据类型，包括：
-
-#### （1）数值类型
-
-数值包含的类型如下：
-
-+ 整型数据：`TINYINT`、`INTEGER`、`SMALLINT`、`MEDIUMINT`、`DECIMAL` 、`NUMERIC` 和`BIGINT`。
-
-+ 浮点型数据：`DECIMAL`、`FLOAT`、`REAL` 和 `DOUBLE PRECISION`)。
-
-其中，关键字`INT`是`INTEGER`的同义词，关键字DEC是的同义词。
-
-不同关键字的主要区别就是表示的范围或精度不一样。具体如下表：
-
-|     类型     | 大小                                     |                        范围（有符号）                        | 范围（无符号）                                               | 用途            |
-| :----------: | :--------------------------------------- | :----------------------------------------------------------: | :----------------------------------------------------------- | :-------------- |
-|   TINYINT    | 1 Bytes                                  |                         (-128，127)                          | (0，255)                                                     | 小整数值        |
-|   SMALLINT   | 2 Bytes                                  |                      (-32 768，32 767)                       | (0，65 535)                                                  | 大整数值        |
-|  MEDIUMINT   | 3 Bytes                                  |                   (-8 388 608，8 388 607)                    | (0，16 777 215)                                              | 大整数值        |
-| INT或INTEGER | 4 Bytes                                  |               (-2 147 483 648，2 147 483 647)                | (0，4 294 967 295)                                           | 大整数值        |
-|    BIGINT    | 8 Bytes                                  |   (-9,223,372,036,854,775,808，9 223 372 036 854 775 807)    | (0，18 446 744 073 709 551 615)                              | 极大整数值      |
-|    FLOAT     | 4 Bytes                                  | (-3.402 823 466 E+38，-1.175 494 351 E-38)，0，(1.175 494 351 E-38，3.402 823 466 351 E+38) | 0，(1.175 494 351 E-38，3.402 823 466 E+38)                  | 单精度 浮点数值 |
-|    DOUBLE    | 8 Bytes                                  | (-1.797 693 134 862 315 7 E+308，-2.225 073 858 507 201 4 E-308)，0，(2.225 073 858 507 201 4 E-308，1.797 693 134 862 315 7 E+308) | 0，(2.225 073 858 507 201 4 E-308，1.797 693 134 862 315 7 E+308) | 双精度 浮点数值 |
-|   DECIMAL    | 对DECIMAL(M,D) ，如果M>D，为M+2否则为D+2 |                        依赖于M和D的值                        | 依赖于M和D的值                                               | 小数值          |
-
-#### （2）日期和时间类型
-
-表示时间值的日期和时间类型为`DATETIME`、`DATE`、`TIMESTAMP`、`TIME`和`YEAR`。具体如下表：
-
-| 类型      | 大小 ( bytes) |                             范围                             | 格式                  | 用途                     |
-| --------- | :------------ | :----------------------------------------------------------: | :-------------------- | :----------------------- |
-| DATE      | 3             |                    1000-01-01/9999-12-31                     | YYYY-MM-DD            | 日期值                   |
-| TIME      | 3             |                 '-838: 59: 59'/'838: 59: 59'                 | HH: MM: SS            | 时间值或持续时间         |
-| YEAR      | 1             |                          1901/2155                           | YYYY                  | 年份值                   |
-| DATETIME  | 8             |         1000-01-01 00: 00: 00/9999-12-31 23: 59: 59          | YYYY-MM-DD HH: MM: SS | 混合日期和时间值         |
-| TIMESTAMP | 4             | 1970-01-01 00: 00: 00/2038结束时间是第 2147483647 秒，北京时间 2038-1-19 11: 14: 07，格林尼治时间 2038年1月19日 凌晨 03: 14: 07 | YYYYMMDD HHMMSS       | 混合日期和时间值，时间戳 |
-
-#### （3）字符串类型
-
-字符串类型指`CHAR`、`VARCHAR`、`BINARY`、`VARBINARY`、`BLOB`、`TEXT`、`ENUM`和`SET`。具体如下表：
-
-| 类型       | 大小                  | 用途                            |
-| :--------- | :-------------------- | :------------------------------ |
-| CHAR       | 0-255 bytes           | 定长字符串                      |
-| VARCHAR    | 0-65535 bytes         | 变长字符串                      |
-| TINYBLOB   | 0-255 bytes           | 不超过 255 个字符的二进制字符串 |
-| TINYTEXT   | 0-255 bytes           | 短文本字符串                    |
-| BLOB       | 0-65 535 bytes        | 二进制形式的长文本数据          |
-| TEXT       | 0-65 535 bytes        | 长文本数据                      |
-| MEDIUMBLOB | 0-16 777 215 bytes    | 二进制形式的中等长度文本数据    |
-| MEDIUMTEXT | 0-16 777 215 bytes    | 中等长度文本数据                |
-| LONGBLOB   | 0-4 294 967 295 bytes | 二进制形式的极大文本数据        |
-| LONGTEXT   | 0-4 294 967 295 bytes | 极大文本数据                    |
-
-+ `char`声明的是定长字符串。若实际中字符串长度不足，则会在末尾使用空格进行填充至声明的长度。
-
-+ `varchar`声明的是可变长字符串。存储过程中，只会按照字符串的实际长度来存储，但会多占用一位来存放实际字节的长度。
-
-
-
-### 1.4基础语法
-
-#### 1.4.1 数据库基本操作
-
-##### 1.4.1.1 数据库的创建 
-
-通过`CREATE`命令，可以创建指定名称的数据库，语法结构如下：
-
-```mysql
-CREATE DATABASE [IF NOT EXISTS] <数据库名称>;
-```
-
-MySQL 的数据存储区将以目录方式表示 MySQL 数据库，因此数据库名称必须符合操作系统的文件夹命名规则，不能以数字开头，尽量要有实际意义。
-
-MySQL下不运行存在两个相同名字的数据库，否则会报错。如果使用`IF NOT EXISTS`（可选项），可以避免此类错误。
-
-##### 1.4.1.2 数据库的查看
-
-1. 查看所有存在的数据库
-
-```MYSQL
-SHOW DATABASES [LIKE '数据库名'];
-```
-
-`LIKE`从句是可选项，用于匹配指定的数据库名称。`LIKE` 从句可以部分匹配，也可以完全匹配。
-
-##### 1.4.1.3 查看创建的数据库
-
-```mysql
-SHOW CREATE DATABASE <数据库名>;
-SHOW CREATE DATABASE <数据库名> \G
-```
-
-##### 1.4.1.3 选择数据库
-
-在操作数据库前，必须指定所要操作的数据库。通过`USE`命令，可以切换到对应的数据库下。
-
-```mysql
-USE <数据库名>
-```
-
-##### 1.4.1.4 删除数据库
-
-通过`DROP`命令，可以将相应数据库进行删除。
-
-```mysql
-DROP DATABASE [IF EXISTS] <数据库名>
-```
-
-其中，`IF EXISTS`为可选性，用于防止数据库不存在时报错。
-
-
-
-#### 1.4.2 表的基本操作
-
-##### 1.4.2.1 表的创建
-
-创建表的语法结构如下：
-
-```mysql
-CREATE TABLE <表名> （<字段1> <数据类型> <该列所需约束>,
-   <字段2> <数据类型> <该列所需约束>,
-   <字段3> <数据类型> <该列所需约束>,
-   <字段4> <数据类型> <该列所需约束>,
-   ...
-   <该表的约束1>， <该表的约束2>，……）;
    
-#示例
--- 创建一个名为Product的表
-CREATE TABLE Product(
-  product_id CHAR(4) NOT NULL,
-  product_name VARCHAR(100) NOT NULL,
-  product_type VARCHAR(32) NOT NULL,
-  sale_price INT,
-  purchase_price INT,
-  regist_date DATE,
-  PRIMARY KEY (product_id)
-);
-```
 
-简单介绍一下该语句中出现的约束条件，约束条件在后面会详细介绍：
+8. 数据库中查询数据：
 
-+ `PRIMARY KEY`：主键，表示该字段对应的内容唯一且不能为空。
-+ `NOT NULL`：在 `NULL` 之前加上了表示否定的` NOT`，表示该字段不能输入空白。
+   ```
+   SELECT column_name,column_name
+   FROM table_name
+   [WHERE Clause]
+   [LIMIT N][ OFFSET M]
+   ```
 
-通过`SHOW TABLES`命令来查看当前数据库下的所有的表名：
+   
 
-```mysql
-SHOW TABLES;
+9. 更新 MySQL 中的数据：
 
--- 结果如下
-+----------------+
-| Tables_in_shop |
-+----------------+
-| Product        |
-+----------------+
-1 rows in set (0.00 sec)
-```
+   ```
+   UPDATE table_name SET field1=new-value1, field2=new-value2
+   [WHERE Clause]
+   ```
 
-通过`DESC <表名>`来查看表的结构：
-
-```mysql
-DESC Product;
-
--- 结果如下
-+----------------+--------------+------+-----+---------+-------+
-| Field          | Type         | Null | Key | Default | Extra |
-+----------------+--------------+------+-----+---------+-------+
-| product_id     | char(4)      | NO   | PRI | NULL    |       |
-| product_name   | varchar(100) | NO   |     | NULL    |       |
-| product_type   | varchar(32)  | NO   |     | NULL    |       |
-| sale_price     | int          | YES  |     | NULL    |       |
-| purchase_price | int          | YES  |     | NULL    |       |
-| regist_date    | date         | YES  |     | NULL    |       |
-+----------------+--------------+------+-----+---------+-------+
-6 rows in set (0.00 sec)
-```
+   
 
-##### 1.4.2.2 表的删除
+10. 删除 MySQL 数据表中的记录：DELETE FROM table_name [WHERE Clause]
 
-删除表的语法结构如下：
+11. 从数据表中读取数据的通用语法(正则)：
 
-```mysql
-DROP TABLE <表名>;
+    ```
+    SELECT field1, field2,...fieldN 
+    FROM table_name
+    WHERE field1 LIKE condition1 [AND [OR]] filed2 = 'somevalue'
+    ```
 
--- 例如：DROP TABLE Product;
-```
+    
 
-说明：通过`DROP`删除的表示无法恢复的，在删除表的时候请谨慎。
+12. 连接表：
 
-##### 1.4.2.3 表的更新
+    ```
+    SELECT expression1, expression2, ... expression_n
+    FROM tables
+    [WHERE conditions]
+    UNION [ALL | DISTINCT]
+    SELECT expression1, expression2, ... expression_n
+    FROM tables
+    [WHERE conditions];
+    
+    参数
+    expression1, expression2, ... expression_n: 要检索的列。
+    tables: 要检索的数据表。
+    WHERE conditions: 可选， 检索条件。
+    DISTINCT: 可选，删除结果集中重复的数据。默认情况下 UNION 操作符已经删除了重复数据，所以 DISTINCT 修饰符对结果没啥影响。
+    ALL: 可选，返回所有结果集，包含重复数据。
+    ```
 
-通过`ALTER TABLE`语句，我们可以对表字段进行不同的操作，下面通过示例来具体学习用法。
+    
 
-示例：
+13. - **INNER JOIN（内连接,或等值连接）**：获取两个表中字段匹配关系的记录。
+    - **LEFT JOIN（左连接）：**获取左表所有记录，即使右表没有对应匹配的记录。
+    - **RIGHT JOIN（右连接）：** 与 LEFT JOIN 相反，用于获取右表所有记录，即使左表没有对应匹配的记录。
 
-1. 创建一张名为Student的表
+14. MySQL 排序：
 
-```mysql
-CREATE TABLE Student(
-  id INT PRIMARY KEY,
-  name CHAR(15)
-);
-```
+    ```
+    SELECT field1, field2,...fieldN FROM table_name1, table_name2...
+    ORDER BY field1 [ASC [DESC][默认 ASC]], [field2...] [ASC [DESC][默认 ASC]]
+    ```
 
+    
 
+15. 分组：
 
-```mysql
-DESC student;
+    ```
+    SELECT column_name, function(column_name)
+    FROM table_name
+    WHERE column_name operator value
+    GROUP BY column_name;
+    ```
 
--- 结果如下
-+-------+----------+------+-----+---------+-------+
-| Field | Type     | Null | Key | Default | Extra |
-+-------+----------+------+-----+---------+-------+
-| id    | int      | NO   | PRI | NULL    |       |
-| name  | char(15) | YES  |     | NULL    |       |
-+-------+----------+------+-----+---------+-------+
-2 rows in set (0.00 sec)
-```
+    
 
-2. 更改表名
+## MySQL 事务
 
-   通过`RENAME`命令，将表名从Student => Students。
+MySQL 事务主要用于处理操作量大，复杂度高的数据。事务是必须满足4个条件（ACID）：：原子性（**A**tomicity，或称不可分割性）、一致性（**C**onsistency）、隔离性（**I**solation，又称独立性）、持久性（**D**urability）。
 
-```mysql
-ALTER TABLE Student RENAME Students;
-```
+- **原子性：**一个事务（transaction）中的所有操作，要么全部完成，要么全部不完成，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚（Rollback）到事务开始前的状态，就像这个事务从来没有执行过一样。
+- **一致性：**在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的资料必须完全符合所有的预设规则，这包含资料的精确度、串联性以及后续数据库可以自发性地完成预定的工作。
+- **隔离性：**数据库允许多个并发事务同时对其数据进行读写和修改的能力，隔离性可以防止多个事务并发执行时由于交叉执行而导致数据的不一致。事务隔离分为不同级别，包括读未提交（Read uncommitted）、读提交（read committed）、可重复读（repeatable read）和串行化（Serializable）。
+- **持久性：**事务处理结束后，对数据的修改就是永久的，即便系统故障也不会丢失。
 
-3. 插入新的字段
+### 事务控制语句
 
-   通过`ADD`命令，新增字段sex和age。
+- BEGIN 或 START TRANSACTION 显式地开启一个事务；
+- COMMIT 也可以使用 COMMIT WORK，不过二者是等价的。COMMIT 会提交事务，并使已对数据库进行的所有修改成为永久性的；
+- ROLLBACK 也可以使用 ROLLBACK WORK，不过二者是等价的。回滚会结束用户的事务，并撤销正在进行的所有未提交的修改；
+- SAVEPOINT identifier，SAVEPOINT 允许在事务中创建一个保存点，一个事务中可以有多个 SAVEPOINT；
+- RELEASE SAVEPOINT identifier 删除一个事务的保存点，当没有指定的保存点时，执行该语句会抛出一个异常；
+- ROLLBACK TO identifier 把事务回滚到标记点；
+- SET TRANSACTION 用来设置事务的隔离级别。InnoDB 存储引擎提供事务的隔离级别有READ UNCOMMITTED、READ COMMITTED、REPEATABLE READ 和 SERIALIZABLE。
 
-```mysql
--- 不同的字段通过逗号分开
-ALTER TABLE Students ADD sex CHAR(1), ADD age INT;
-```
+### 事务处理主要有两种方法
 
-​		其它插入技巧：
+1. 用 BEGIN, ROLLBACK, COMMIT来实现
 
-```mysql
--- 通过FIRST在表首插入字段stu_num
-ALTER TABLE Students ADD stu_num INT FIRST;
+   - **BEGIN** 开始一个事务
 
--- 指定在字段sex后插入字段height
-ALTER TABLE Students ADD height INT AFTER sex;
-```
+   - **ROLLBACK** 事务回滚
 
-```mysql
-DESC Students;
-
--- 结果如下
-+---------+----------+------+-----+---------+-------+
-| Field   | Type     | Null | Key | Default | Extra |
-+---------+----------+------+-----+---------+-------+
-| stu_num | int      | YES  |     | NULL    |       |
-| id      | int      | NO   | PRI | NULL    |       |
-| name    | char(15) | YES  |     | NULL    |       |
-| sex     | char(1)  | YES  |     | NULL    |       |
-| height  | int      | YES  |     | NULL    |       |
-| age     | int      | YES  |     | NULL    |       |
-+---------+----------+------+-----+---------+-------+
-6 rows in set (0.00 sec)
-```
+   - **COMMIT** 事务确认
 
-4. 字段的删除
 
-   通过`DROP`命令，可以对不在需要的字段进行删除。
+2. 直接用 SET 来改变 MySQL 的自动提交模式:
 
-```mysql
--- 删除字段stu_num
-ALTER TABLE Students DROP stu_num;
-```
+   - **SET AUTOCOMMIT=0** 禁止自动提交
 
-5. 字段的修改
+   - **SET AUTOCOMMIT=1** 开启自动提交
 
-   通过`MODIFY`修改字段的数据类型。
+## 修改数据表名或者修改数据表字段
 
-```mysql
--- 修改字段age的数据类型
-ALTER TABLE Students MODIFY age CHAR(3);
-```
+1. 删除表的 i 字段：`ALTER TABLE testalter_tbl  DROP i;`
 
-​		通过`CHANGE`命令，修改字段名或类型
+2. 向数据表中添加列：`ALTER TABLE testalter_tbl ADD i INT;`
 
-```mysql
--- 修改字段name为stu_name，不修改数据类型
-ALTER TABLE Students CHANGE name stu_name CHAR(15);
+3. 修改字段类型及名称：`ALTER TABLE testalter_tbl MODIFY c CHAR(10);`
 
--- 修改字段sex为stu_sex，数据类型修改为int
-ALTER TABLE Students CHANGE sex stu_sex INT;
-```
+4. 指定字段 j 为 NOT NULL 且默认值为100 ：
 
-```mysql
-DESC Students;
-
--- 结果如下
-+----------+----------+------+-----+---------+-------+
-| Field    | Type     | Null | Key | Default | Extra |
-+----------+----------+------+-----+---------+-------+
-| id       | int      | NO   | PRI | NULL    |       |
-| stu_name | char(20) | YES  |     | NULL    |       |
-| stu_sex  | int      | YES  |     | NULL    |       |
-| height   | int      | YES  |     | NULL    |       |
-| age      | char(3)  | YES  |     | NULL    |       |
-+----------+----------+------+-----+---------+-------+
-5 rows in set (0.00 sec)
-```
+   `ALTER TABLE testalter_tbl MODIFY j BIGINT NOT NULL DEFAULT 100;`
 
-##### 1.4.2.4 表的查询
+5. 修改字段的默认值： `ALTER TABLE testalter_tbl ALTER i SET DEFAULT 1000;`
 
-通过`SELECT`语句，可以从表中取出所要查看的字段的内容：
+6. 修改数据表的名称：`ALTER TABLE testalter_tbl RENAME TO alter_tbl;`
 
-```mysql
-SELECT <字段名>, ……
- FROM <表名>;
-```
 
-如要直接查询表的全部字段：
+## MySQL 索引
 
-```mysql
-SELECT *
- FROM <表名>;
-```
+1. 创建索引：`CREATE INDEX indexName ON table_name (column_name)`
 
-其中，**星号（*）**代表全部字段的意思。
-
-示例：
-
-1. 建表并插入数据
-
-   在MySQL中，我们通过`INSERT`语句往表中插入数据，该语句在后面会详细介绍，该小节的重点是学会使用`SELECT`。
-
-```mysql
--- 向Product表中插入数据
-INSERT INTO Product VALUES
-  ('0001', 'T恤衫', '衣服', 1000, 500, '2009-09-20'),
-  ('0002', '打孔器', '办公用品', 500, 320, '2009-09-11'),
-  ('0003', '运动T恤', '衣服', 4000, 2800, NULL),
-  ('0004', '菜刀', '厨房用具', 3000, 2800, '2009-09-20'),
-  ('0005', '高压锅', '厨房用具', 6800, 5000, '2009-01-15'),
-  ('0006', '叉子', '厨房用具', 500, NULL, '2009-09-20'),
-  ('0007', '擦菜板', '厨房用具', 880, 790, '2008-04-28'),
-  ('0008', '圆珠笔', '办公用品', 100, NULL,'2009-11-11')
- ;
-```
+2. 修改表结构(添加索引)：`ALTER table tableName ADD INDEX indexName(columnName)`
 
-2. 查看表的内容
+3. 修改表结构(添加索引)：`ALTER table tableName ADD INDEX indexName(columnName)`
 
-```mysql
--- 查看表的全部内容
-SELECT * 
- FROM Product;
-```
+4. 创建表的时候直接指定：
 
-```mysql
--- 查看部分字段包含的内容
-SELECT 
-  product_id,
-  product_name,
-  sale_price 
- FROM Product;
-```
+   ```
+   CREATE TABLE mytable(  
+   
+   ID INT NOT NULL,   
+   
+   username VARCHAR(16) NOT NULL,  
+   
+   INDEX [indexName] (username(length))  
+   
+   );  
+   ```
 
-3. 对查看的字段从新命名
+5. 删除索引：`DROP INDEX [indexName] ON mytable;` 
 
-   通过`AS`语句对展示的字段另起别名，这不会修改表内字段的名字。
 
-```mysql
-SELECT 
-  product_id AS ID,
-  product_type AS TYPE
- FROM Product;
-```
 
-​		设定汉语别名时需要使用双引号（"）括起来，英文字符则不需要。
+# MongoDB学习
 
-```Mysql
-SELECT  
-  product_id AS "产品编号",
-  product_type AS "产品类型"  
- FROM Product;
-```
+## MongoDB 介绍
 
-4. 常数的查询
+MongoDB 是由C++语言编写的，是一个基于**分布式文件存储**的开源数据库系统。MongoDB 将数据存储为一个文档，数据结构由**键值(key=>value)对**组成。**MongoDB 文档类似于 JSON 对象**。字段值可以包含其他文档，数组及文档数组。
 
-   `SELECT`子句中，除了可以写字段外，还可以写常数。
+主要特点
 
-```mysql
-SELECT 
-  '商品' AS string,
-  '2009-05-24' AS date,
-  product_id,
-  product_name
- FROM Product;
-```
+- 可以在MongoDB记录中设置任何属性的索引 (如：FirstName="Sameer",Address="8 Gandhi Road")来实现更快的排序。
+- 你可以通过本地或者网络创建数据镜像，这使得MongoDB有更强的扩展性。
+- Mongo支持丰富的查询表达式。查询指令使用JSON形式的标记，可轻易查询文档中内嵌的对象及数组。
+- MongoDB允许在服务端执行脚本，可以用Javascript编写某个函数，直接在服务端执行，也可以把函数的定义存储在服务端，下次直接调用即可。
 
-5. 删除重复行
+## MongoDB基本操作
 
-   在`SELECT`语句中使用`DISTINCT`可以去除重复行。
+1. 创建数据库，如果数据库不存在，则创建，否则切换到指定数据库：`use DATABASE_NAME`
 
-```mysql
-SELECT 
-  DISTINCT regist_date 
- FROM Product;
-```
+2. 查看所有数据库：`show dbs` 
 
-​		在使用`DISTINCT` 时，`NULL `也被视为一类数据。`NULL `存在于多行中时，会被合并为一条`NULL `数据。
+3. 删除当前数据库：`db.dropDatabase()`
 
-​		还可以通过组合使用，来去除列组合重复的数据。`DISTINCT `关键字只能用在第一个列名之前。
+4. 创建集合：`db.createCollection(name, options)`
 
-```mysql
-SELECT 
-  DISTINCT product_type, regist_date
- FROM Product;
-```
+5. 查看已有集合：`show collections；show tables`
 
-6. 指定查询条件
+6. 删除集合：`db.mycol2.drop() #mycol2为集合名`
 
-   首先通过`WHERE` 子句查询出符合指定条件的记录，然后再选取出` SELECT `语句指定的列，语法结构如下：
+7. 插入文档：`db.COLLECTION_NAME.insert(document) ；db.COLLECTION_NAME.save(document)`
 
-```mysql
-SELECT <字段名>, ……
-  FROM <表名>
- WHERE <条件表达式>;
-```
+8. 向集合插入一个新文档：
 
-​		示例：
+   ```
+   db.collection.insertOne(
+      <document>,
+      {
+         writeConcern: <document>
+      }
+   )
+   ```
 
-```mysql
-SELECT product_name
-  FROM Product
- WHERE product_type = '衣服';
-```
+9. 向集合插入一个多个文档：
 
-注意，`WHERE`子句要紧跟在`FROM`子句之后。
+   ```
+   db.collection.insertMany(
+      [ <document 1> , <document 2>, ... ],
+      {
+         writeConcern: <document>,
+         ordered: <boolean>
+      }
+   )
+   参数说明：
+   document：要写入的文档。
+   writeConcern：写入策略，默认为 1，即要求确认写操作，0 是不要求。
+   ordered：指定是否按顺序写入，默认 true，按顺序写入。
+   ```
 
-##### 1.4.2.5 表的复制
+10. 更新已存在的文档：`db.collection.update() ，db.collection.save()` 
 
-表的复制可以将表结构与表中的数据全部复制，或者只复制表的结构。
+    ```
+    db.collection.update(
+       <query>,
+       <update>,
+       {
+         upsert: <boolean>,
+         multi: <boolean>,
+         writeConcern: <document>
+       }
+    )
+    参数说明：
+    query : update的查询条件，类似sql update查询内where后面的。
+    update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+    upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+    multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+    writeConcern :可选，抛出异常的级别。
+    ```
 
-```mysql
--- 将整个表复制过来
-CREATE TABLE Product_COPY1
-	SELECT * FROM Product;
+11. 删除文档：`db.collection.remove()` 
 
-SELECT * FROM Product_COPY1;
-```
+    ```
+    db.collection.remove(
+       <query>,
+       {
+         justOne: <boolean>,
+         writeConcern: <document>
+       }
+    )
+    参数说明：
+    
+    query :（可选）删除的文档的条件。
+    justOne : （可选）如果设为 true 或 1，则只删除一个文档，如果不设置该参数，或使用默认值 false，则删除所有匹配条件的文档。
+    writeConcern :（可选）抛出异常的级别。
+    ```
 
-```mysql
--- 通过LIKE复制表结构
-CREATE TABLE Product_COPY2
-	LIKe Product;
+12. 查询文档：`db.collection.find(query, projection)`
 
-SELECT * FROM Product_COPY2;
+    ```
+    db.collection.find(query, projection)
+    query ：可选，使用查询操作符指定查询条件
+    projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省略该参数即可（默认省略）。
+    
+    ```
 
--- 结果如下
-Empty set (0.00 sec)  -- 表为空的
+## 条件操作符
 
-DESC Product_COPY2;
+1. 大于操作符 - $gt：`db.col.find({likes : {$gt : 100}})`
 
--- 结果如下
--- 表结构已复制过来
-```
+   类似于SQL语句：`Select * from col where likes > 100;`
 
-#### 1.4.3 运算符
-
-##### 1.4.3.1 算术运算符
-
-我们可以在`SELECT`语句中使用计算表达式：
-
-```mysql
-SELECT 
-  product_name,
-  sale_price,
-  sale_price * 2 AS "sale_price_x2"
- FROM Product;
- 
--- 结果如下
-+--------------+------------+---------------+
-| product_name | sale_price | sale_price_x2 |
-+--------------+------------+---------------+
-| T恤衫        |       1000 |          2000 |
-| 打孔器       |        500 |          1000 |
-| 运动T恤      |       4000 |          8000 |
-| 菜刀         |       3000 |          6000 |
-| 高压锅       |       6800 |         13600 |
-| 叉子         |        500 |          1000 |
-| 擦菜板       |        880 |          1760 |
-| 圆珠笔       |        100 |           200 |
-+--------------+------------+---------------+
-```
+2. 大于等于操作符 - $gte：`db.col.find({likes : {$gte : 100}})`
 
-+ 四则运算所使用的运算符**(+、-、*、/）**称为算术运算符。
+3. 小于操作符 - $lt：`db.col.find({likes : {$lt : 150}})`
 
-+ 在运算表达式中，也可以使用**()**，括号中的运算表达式优先级会得到提升。
+4. 小于等于操作符 - $lte：`db.col.find({likes : {$lte : 150}})`
 
-+ **NULL**的计算结果，仍然还是**NULL**。
+5. 使用 (<) 和 (>) 查询 - \$lt 和 \$gt：`db.col.find({likes : {$lt :200, $gt : 100}})`
 
-##### 1.4.3.2 比较运算符
+6. 获取 "col" 集合中 title 为 String 的数据 ：`db.col.find({"title" : {$type : 'string'}})`
 
-在 `WHERE` 子句中通过使用比较运算符可以组合出各种各样的条件表达式。
+7. 读取指定数量的数据记录：`db.COLLECTION_NAME.find().limit(NUMBER)`
 
-```mysql
-SELECT product_name, product_type
-  FROM Product
- WHERE sale_price = 500;
-```
+8. 跳过指定数量的数据：`db.COLLECTION_NAME.find().limit(NUMBER).skip(NUMBER)`
 
-常见比较运算符如下表：
-
-| 运算符 | 含义     |
-| ------ | -------- |
-| =      | 相等     |
-| <>     | 不相等   |
-| \>=    | 大于等于 |
-| \>     | 大于     |
-| <=     | 小于等于 |
-| <      | 小于     |
-
-+ 不能对**NULL**使用任何比较运算符，只能通过`IS NULL`语句来判断：
-
-```mysql
-SELECT 
-   product_name,
-   purchase_price
-  FROM Product
- WHERE purchase_price IS NULL;
-```
+9. 对数据进行排序：`db.COLLECTION_NAME.find().sort({KEY:1})`
 
-​		希望选取不是 NULL 的记录时，需要使用`IS NOT NULL`运算符。
 
-+ 对字符串使用比较符
 
-​        MySQL中字符串的排序与数字不同，典型的规则就是按照字典顺序进行比较，也就是像姓名那样，按照条目在字典中出现的顺序来进行排序。例如：
+## 索引操作，索引通常能够极大的提高查询的效率
 
-```mysql
-'1'  < '10' < '11' < '2' < '222' < '3'
-```
+1. 创建索引 ：`db.collection.createIndex(keys, options)`
+2. 查看集合索引：`db.col.getIndexes()`
+3. 查看集合索引大小：`db.col.totalIndexSize()`
+4. 删除集合所有索引：`db.col.dropIndexes()`
+5. 删除集合指定索引：`db.col.dropIndex("索引名称")`
 
+## Python操作MongoDB
 
+1. python 连接MongoDB
 
-##### 1.4.3.3 逻辑运算符
+   ```
+   import pymongo
+   
+   myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+   mydb = myclient["pydb"]
+   mycol = mydb["col_set"]
+   ```
 
-1. 使用`NOT`否认某一条件：
+2. 插入文档
 
-```mysql
-SELECT 
-  product_name,
-  product_type,
-  sale_price
-  FROM Product
- WHERE NOT sale_price >= 1000;
-```
+   ```
+   mydict = { "name": "Toby", "age": "23", "url": "https://juejin.cn/user/3403743731649863" }
+   
+   x = mycol.insert_one(mydict) 
+   print(x)
+   ```
 
-2. `AND`运算符合`OR`运算符
+3. 查询文档
 
-```mysql
-SELECT product_type, sale_price
-    FROM Product
-	WHERE product_type = '厨房用具' 
-	AND sale_price >= 3000;
-```
+   ```
+   x = mycol.find_one()
+   
+   print(x)
+   ```
 
-```mysql
-SELECT product_type, sale_price
-		FROM Product
-	WHERE product_type = '厨房用具'
-	OR sale_price >= 3000;
-```
+4. 查询指定字段的数据
 
-3. 逻辑运算符和真值
+   ```
+   for x in mycol.find({},{ "_id": 0, "name": 1, "age": 1 }):
+     print(x)
+   ```
 
-+ 符**NOT**、**AND** 和 **OR** 称为逻辑运算符；
-+ 真值就是值为**真（TRUE）**或**假 （FALSE）**；
+5. 根据指定条件查询
 
-+ 在查询**NULL**时，SQL中存在第三种真值，**不确定（UNKNOWN）**，**NULL**和任何值做逻辑运算结果都是不确定；
-+ 考虑 **NULL** 时的条件判断也会变得异常复杂，因此尽量给字段加上**NOT NULL**的约束。
+   ```
+   myquery = { "name": "Toby" }
+    
+   mydoc = mycol.find(myquery)
+    
+   for x in mydoc:
+     print(x)
+   ```
 
-#### 1.4.4 分组查询
+6. 修改文档
 
-##### 1.4.4.1 聚合函数
+   ```
+   myquery = { "age": "23" }
+   newvalues = { "$set": { "age": "12345" } }
+    
+   mycol.update_one(myquery, newvalues)
+    
+   # 输出修改后的  "sites"  集合
+   for x in mycol.find():
+     print(x)
+   ```
 
-通过 SQL 对数据进行某种操作或计算时需要使用函数。
+7. 排序
 
-+ `COUNT`：计算表中的记录数（行数）
+   ```
+   mydoc = mycol.find().sort("age")
+   for x in mydoc:
+     print(x)
+   ```
 
-+ `SUM`： 计算表中数值列中数据的合计值
+8. 删除数据
 
-+ `AVG`： 计算表中数值列中数据的平均值
+   ```
+   myquery = { "name": "Timi" }
+    
+   mycol.delete_one(myquery)
+    
+   # 删除后输出
+   for x in mycol.find():
+     print(x)
+   ```
 
-+ `MAX`： 求出表中任意列中数据的最大值
+9. 删除集合
 
-+ `MIN`： 求出表中任意列中数据的最小值
+   `mycol.drop()`
 
-示例：
+   
 
-```mysql
--- 计算全部数据的行数
-SELECT COUNT(*) FROM Product;
+# Redis学习
 
--- 结果如下
-+----------+
-| COUNT(*) |
-+----------+
-|        8 |
-+----------+
-1 row in set (0.00 sec)
-```
+## Redis 介绍
 
-**注意点1**：除了`COUNT`可以将`*`作为参数，其它的函数均不可以。
-
-```mysql
--- 计算最高的销售价格
-SELECT MAX(sale_price) FROM Product;
-
--- 结果如下
-+-----------------+
-| MAX(sale_price) |
-+-----------------+
-|          680000 |
-+-----------------+
-1 row in set (0.00 sec)
-```
+Redis:**RE**mote **DI**ctionary **S**erver(远程字典服务器)，一个高性能的(Key/Value)分布式单进程单线程模型数据库，基于内存运行，并支持持久化的NoSQL数据库，人们称为数据结构服务器。
 
-**注意点2：**当将字段名作为参数传递给函数时，只会计算不包含`NULL`的行。
-
-示例：
-
-```mysql
--- purchase_price字段是包含NULL值的
-SELECT purchase_price FROM Product;
-
--- 结果如下
-+----------------+
-| purchase_price |
-+----------------+
-|            500 |
-|            320 |
-|           2800 |
-|            700 |
-|           1250 |
-|           NULL |
-|            198 |
-|           NULL |
-+----------------+
-8 rows in set (0.00 sec)
-```
+Redis与其他key-value缓存产品有以下三个特点：
 
-以*为参数传递给`COUNT`函数
-
-```mysql
-SELECT COUNT(*) FROM Product;
-
--- 结果如下
-+----------+
-| COUNT(*) |
-+----------+
-|        8 |
-+----------+
-1 row in set (0.00 sec)
-```
+- Redis支持数据的持久化，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用。
+- Redis不仅仅支持简单的 key-value 类型的数据，同时还提供list、set、zset、hash等数据结构的存储。
+- Redis支持数据的备份，即master-slave模式的数据备份。
 
-以purchase_price为参数传递给`COUNT`函数
-
-```mysql
-SELECT COUNT(purchase_price) FROM Product;
-
--- 结果如下
-+-----------------------+
-| COUNT(purchase_price) |
-+-----------------------+
-|                     6 |
-+-----------------------+
-1 row in set (0.00 sec)
-```
+## Redis 为什么这么快?
 
-可以看到结果并不一样，函数忽略了值为**NULL**的行。
+多线程的本质就是 CPU 模拟出来多个线程的情况，这种模拟出来的情况就有一个代价，就是上下文的切换，对于一个内存的系统来说，它没有上下文的切换就是效率最高的。redis 用单个CPU 绑定一块内存的数据，然后针对这块内存的数据进行多次读写的时候，都是在一个CPU上完成的，所以它是单线程处 理这个事。在内存的情况下，这个方案就是最佳方案。
 
-`SUM`，`AVG`函数时也一样，计算时会直接忽略，**并不会当做0来处理！**特别注意`AVG`函数，计算时分母也不会算上`NULL`行。
 
-**注意点3**：`MAX/MIN`函数几乎适用于所有数据类型的列，包括字符和日期。`SUM/AVG`函数只适用于数值类型的列。
 
-**注意点4**：在聚合函数删除重复值
+## Redis五大数据类型
 
-```mysql
-SELECT COUNT(DISTINCT product_type)
- FROM Product;
- 
--- 结果如下
-+------------------------------+
-| COUNT(DISTINCT product_type) |
-+------------------------------+
-|                            3 |
-+------------------------------+
-1 row in set (0.01 sec)
-```
+### 基本操作
 
-`DISTINCT`必须写在括号中。这是因为必须要在计算行数之前删除 product_type 字段中的重复数据。
+1. 查看所有的key：`keys *`
+2. 判断某个key是否存在：`EXISTS key` `EXISTS name`
+3. 移除key：`move key db` `move name 1`
+4. 为给定 key 设置生存时间：`EXPIRE key seconds ` `EXPIRE name 10`
+5. 查看你的key是什么类型：`type key` `type name`
+6. 清空数据库：`flushdb`
 
+### String (字符串类型)
 
+1. 设置值：`set key1 value1`
+2. 获得key：`get key1`
+3. 删除key：`del key1`
+4. 对已存在的key进行APPEND：`append key1 'hello'`
+5. 设置浏览量为0：`set views 0`
+6. 浏览+1：`incr views`
+7. 浏览-1：`decr views`
+8. 浏览+10：`incrby views 10`
+9. 浏览+10：`decrby views 10` 
+10. 截取部分字符串：`getrange key2 0 2`
+11. 替换值：`SETRANGE key2 1 xx`
+12. 设置key的同时设置生存时间(setex=set with expire)：`setex key3 60 expore`
+13. 如果不存在就设置，成功返回1(setnx=set if not exist)：`setnx mykey "redis"`
+14. 获取字符串的长度：`STRLEN key1`
+15. 同时设置一个或多个key-value对：`mset k10 v10 k11 v11 k12 v12`
+16. 返回所多个key的value，如果某个key不存在的话，那么这个key会返回特殊值nil，这里k13就会返回nil：`mget k10 k11 k12 k13`
+17. redis的原子性证明(由于k10已经存在了，所以不符合msetnx的语法，因此k15 v15也不会被建立)：`msetnx k10 v10 k15 v15`
 
-##### 1.4.4.2 对表分组
+String数据结构是简单的key-value类型，value其实不仅可以是String，也可以是数字。
 
-如果对Python的Pandas熟悉，那么大家应该很了解`groupby`函数，可以根据指定的列名，对表进行分组。在MySQL中，也存在同样作用的函数，即`GROUP BY`。
+常规key-value缓存应用：
 
-语法结构如下：
+常规计数、微博数、粉丝数等
 
-```mysql
-SELECT <列名1>, <列名2>, <列名3>, ……
- FROM <表名>
- GROUP BY <列名1>, <列名2>, <列名3>, ……;
-```
+### List(列表)
 
-示例：
-
-```mysql
-SELECT product_type, COUNT(*)
- FROM Product
- GROUP BY product_type;
- 
--- 结果如下
-+--------------+----------+
-| product_type | COUNT(*) |
-+--------------+----------+
-| 衣服         |        2 |
-| 办公用品     |        2 |
-| 厨房用具     |        4 |
-+--------------+----------+
-3 rows in set (0.01 sec)
-```
+1. Lpush:将一个或多个值插入到列表头部(左)：`LPUSH list "one"`
 
-1. 在该语句中，我们首先通过`GROUP BY`函数对指定的字段product_type进行分组。分组时，product_type字段中具有相同值的行会汇聚到同一组。
+2. rpush:将一个或多个值插入到列表尾部(右)：`RPUSH list "right"`
 
-2. 最后通过`COUNT`函数，统计不同分组的包含的行数。
+3. lrange:返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。：`Lrange list 0 -1`
 
-简单来理解：
+4. lpop 命令用于移除并返回列表的第一个元素。当列表 key 不存在时，返回 nil ：`Lpop list`
 
-+ 例如做操时，老师将不同身高的同学进行分组，相同身高的同学会被分到同一组，分组后我们又统计了每个小组的学生数。
+5. rpop 移除列表的最后一个元素，返回值为移除的元素：`Rpop list`
 
-+ 将这里的同学可以理解为表中的一行数据，身高理解为表的某一字段。
-+ 分组操作就是`GROUP BY`，`GROUP BY`后面接的字段等价于按照身高分组，统计学生数就等价于在`SELECT`后用了`COUNT(*)`函数。
+6. Lindex按照索引下标获得元素(-1代表最后一个，0代表是第一个)：`Lindex list 0`
 
-注意：`GROUP BY `子句的位置一定要写在`FROM` 语句之后（如果有 `WHERE` 子句的话需要写在 `WHERE` 子句之后）
+7. llen 用于返回列表的长度：`Llen list`
 
-```
-1. SELECT → 2. FROM → 3. WHERE → 4. GROUP BY
-```
+8. lrem key 根据参数 COUNT 的值，移除列表中与参数 VALUE 相等的元素根据参数 count 的值，移除列表中与参数 value 相等的元素。
 
-当被聚合的键中，包含`NULL`时，在结果中会以“不确定”行（空行）的形式表现出来，也就是字段中为`NULL`的数据会被聚合为一组。
+   count 的值可以是以下几种：
 
-##### 1.4.4.3 使用WHERE语句
+   count > 0 : 从表头开始向表尾搜索，移除与 value 相等的元素，数量为 count 。
 
-在对表进行分组之前，也可以是先使用`WHERE`对表进行条件过滤，然后再进行分组处理。语法结构如下：
+   count < 0 : 从表尾开始向表头搜索，移除与 value 相等的元素，数量为 count 的绝对值。
 
-```mysql
-SELECT <列名1>, <列名2>, <列名3>, ……
- FROM <表名>
- WHERE 
- GROUP BY <列名1>, <列名2>, <列名3>, ……;
-```
+   count = 0 : 移除表中所有与 value 相等的值：`lrem list 1 "two"`
 
-示例：
-
-```mysql
--- WHERE语句先将表中类型为衣服的行筛选出来
--- 然后再按照purchase_price来进行分组
-SELECT purchase_price, COUNT(*)
- FROM Product
- WHERE product_type = '衣服'
- GROUP BY purchase_price;
- 
--- 结果如下
-+----------------+----------+
-| purchase_price | COUNT(*) |
-+----------------+----------+
-|            500 |        1 |
-|           2800 |        1 |
-+----------------+----------+
-2 rows in set (0.01 sec)
-```
+9. Ltrim key 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区 间之内的元素都将被删除：`ltrim mylist 1 2`
 
-该语法实际的执行顺序为：
+10. rpoplpush 移除列表的最后一个元素，并将该元素添加到另一个列表并返回：`rpoplpush mylist myotherlist`
 
-```
-FROM → WHERE → GROUP BY → SELECT
-```
+11. lset key index value 将列表 key 下标为 index 的元素的值设置为 value：`lset list 0 "new"` 
 
-+ 使用`GROUP BY`子句时，`SELECT`子句中不能出现聚合键之外的字段名。即，若`GROUP BY`选中purchase_price字段进行分组，则在`SELECT`语句中只能选中purchase_price字段，其它字段如product_id等均不行。
-+ `WHERE`语句中，不可以使用聚合函数。`WHERE`子句只能指定记录（行）的条件，而不能用来指定组的条件。即`WHERE MAX(purchase_price) > 1000`这样的语句是非法的。
+12. linsert key before/after pivot value 用于在列表的元素前或者后插入元素，将值 value 插入到列表 key 当中，位于值 pivot 之前或之后：`LINSERT mylist BEFORE "World" "There"`
 
+13. 总结
 
+    - list就是链表，使用Lists结构，我们可以轻松地实现最新消息排行等功能。
 
-##### 1.4.4.4 为聚合结果指定条件
+    - List的另一个应用就是消息队列，可以利用List的PUSH操作，将任务存在List中，然后工作线程再用POP操作将任务取出进行执行
 
-前面提到了`WHERE`语句中不能使用聚合函数，但是实际操作时需要通过聚合函数来进行过滤怎么办呢？这就要用到`HAVING`语句了。语法结构如下：
+    - list是每个子元素都是String类型的双向链表，可以通过push和pop操作从列表的头部或者尾部 添加或者删除元素，这样List即可以作为栈，也可以作为队列。
 
-```mysql
-SELECT <列名1>, <列名2>, <列名3>, ……
- FROM <表名>
- GROUP BY <列名1>, <列名2>, <列名3>, ……
-HAVING <分组结果对应的条件>
-```
 
-在`HAVING`的子句中能够使用的 3 种要素如下所示：
-
-● 常数
-
-● 聚合函数
-
-●  `GROUP BY`子句中指定的字段名（即聚合键）
-
-示例：
-
-```mysql
--- 不使用HAVING语句
-SELECT product_type, AVG(sale_price)
- FROM Product
- GROUP BY product_type;
- 
--- 结果如下
-+--------------+-----------------+
-| product_type | AVG(sale_price) |
-+--------------+-----------------+
-| 衣服         |       2500.0000 |
-| 办公用品     |        300.0000 |
-| 厨房用具     |     279500.0000 |
-+--------------+-----------------+
-3 rows in set (0.00 sec)
-```
 
-```mysql
--- 使用HAVING语句
--- 通过HAVING语句将销售平均价格大于等于2500的组给保留了
-SELECT product_type, AVG(sale_price)
- FROM Product
- GROUP BY product_type
-HAVING AVG(sale_price) >= 2500;
-
--- 结果如下
-+--------------+-----------------+
-| product_type | AVG(sale_price) |
-+--------------+-----------------+
-| 衣服         |       2500.0000 |
-| 厨房用具     |     279500.0000 |
-+--------------+-----------------+
-2 rows in set (0.00 sec)
-```
+### Set(集合)
 
-可以看到使用`HAVING`语句后，输出的结果有所变化。大致流程如下：
-
-+ 首先，`FROM`语句会选中表Product；
-+ 然后，`GROUP BY`语句会选中字段product_type进行分组；
-+ 之后，通过`HAVING`语句将销售平均价格大于等于2500的组保留下来；
-+ 最后，通过`SELECT`语句将保留下的组的产品类型和平均价格显示出来；
-
-
-
-如果是对**表的行**进行条件指定，`WHERE`和`HAVING`都可以生效。
-
-```mysql
--- 下面两条语句执行结果一致
-SELECT product_type, COUNT(*)
-  FROM Product
-  GROUP BY product_type
- HAVING product_type = '衣服';
-
-SELECT product_type, COUNT(*)
-  FROM Product
-  WHERE product_type = '衣服'
- GROUP BY product_type;
- 
--- 结果如下
-+--------------+----------+
-| product_type | COUNT(*) |
-+--------------+----------+
-| 衣服         |        2 |
-+--------------+----------+
-1 row in set (0.01 sec)
-```
+1. sadd 将一个或多个成员元素加入到集合中，不能重复：`sadd myset "hello"`
+2. smembers 返回集合中的所有的成员：`SMEMBERS myset`
+3. sismember 命令判断成员元素是否是集合的成员：`SISMEMBER myset "world"`
+4. scard 获取集合里面的元素个数：`scard myset`
+5. srem key value 用于移除集合中的元素：`srem myset "kuangshen"`
+6. srandmember key 命令用于返回集合中的一个随机元素：`SMEMBERS myset`
+7. spop key 用于移除集合中的指定 key 的一个或多个随机元素：`spop myset`
+8. smove SOURCE DESTINATION MEMBER 将指定成员 member 元素从 source 集合移动到 destination 集合：`smove myset myset2 "kuangshen"`
+9. 差集：`SDIFF key1 key2`
+10. 交集：`SINTER key1 key2`
+11. 并集：SUNION key1 key2
+12. 总结：
+    - 在微博应用中，可以将一个用户所有的关注人存在一个集合中，将其所有粉丝存在一个集合。Redis还为 集合提供了求交集、并集、差集等操作，可以非常方便的实现如共同关注、共同喜好、二度好友等功 能，对上面的所有集合操作，你还可以使用不同的命令选择将结果返回给客户端还是存集到一个新的集 合中。
 
-但是，一般而言如果是对表的行进行条件指定，最好还是使用`WHERE`语句，因为`WHERE`的执行速度更快。
 
 
+### Hash(哈希，类似 Java里的Map)
 
-##### 1.4.4.5 对表的查询结果进行排序
+**<font color='red'>kv模式不变，但v是一个键值对</font>**
 
-如果希望对表的查询结果根据某指定的字段进行排序，可以使用`ORDER BY`语句。语法结构如下：
+1. hset为哈希表中的字段赋值：`hset myhash field1 "kuangshen"`
+2. hget获取哈希表的字段值： `hget myhash field1`
+3. hmset同时将多个field-value对设置到哈希表中。会覆盖哈希表中已存在的字段：`HMSET myhash field1 "Hello" field2 "World"`
+4. hgetall 用于返回哈希表中，所有的字段和值：`hgetall myhash`
+5. hdel 用于删除哈希表 key 中的一个或多个指定字段：`HDEL myhash field1`
+6. hlen 获取哈希表中字段的数量：`hlen myhash`
+7. hexists 查看哈希表的指定字段是否存在：`hexists myhash field1`
+8. hkeys 获取哈希表中的所有域(field)：`HKEYS myhash`
+9. hvals 返回哈希表所有域(field)的值：`HVALS myhash`
+10. hincrby 为哈希表中的字段值加上指定增量值：`HINCRBY myhash field 1`
+11. hsetnx 为哈希表中不存在的的字段赋值：`HSETNX myhash field1 "hello"`
+12. 总结
+    - Redis hash是一个string类型的field和value的映射表，hash特别适合用于存储对象。 存储部分变更的数据，如用户信息等
 
-```mysql
-SELECT <列名1>, <列名2>, <列名3>, ……
- FROM <表名>
- ORDER BY <排序基准列1>, <排序基准列2>, ……
-```
 
-示例：
 
-```mysql
-SELECT product_id, product_name, sale_price, purchase_price
- FROM Product;
-```
+### Zset(sorted set:有序集合)
 
-```mysql
--- 根据字段sale_price的值进行排序
-SELECT product_id, product_name, sale_price, purchase_price
- FROM Product
-ORDER BY sale_price;
-
--- 结果如下
-+------------+--------------+------------+----------------+
-| product_id | product_name | sale_price | purchase_price |
-+------------+--------------+------------+----------------+
-| 0008       | 圆珠笔       |        100 |           NULL |
-| 0002       | 打孔器       |        500 |            320 |
-| 0001       | T恤衫        |       1000 |            500 |
-| 0003       | 运动T恤      |       4000 |           2800 |
-| 0006       | 叉子         |      50000 |           NULL |
-| 0007       | 擦菜板       |      88000 |            198 |
-| 0004       | 菜刀         |     300000 |            700 |
-| 0005       | 高压锅       |     680000 |           1250 |
-+------------+--------------+------------+----------------+
-8 rows in set (0.00 sec)
-```
+1. 在set基础上，加一个score值。之前set是k1 v1 v2 ，现在zset是 `k1 score1 v1 score2 v2`
+2. zadd 将一个或多个成员元素及其分数值加入到有序集当中： `zadd myset 1 "one"`
+3. zrange 返回有序集中，指定区间内的成员：`ZRANGE myset 0 -1`
+4. zrangebyscore 返回有序集合中指定分数区间的成员列表。有序集成员按分数值递增(从小到大) 次序排列：`zadd salary 2500 xiaoming`
+5. Inf无穷大量+∞,同样地,-∞可以表示为-Inf：`ZRANGEBYSCORE salary -inf +inf`
+6. 递增排列：`ZRANGEBYSCORE salary -inf +inf withscores`
+7. 递减排列：`ZREVRANGE salary 0 -1 WITHSCORES`
+8. 显示工资 <=2500 的所有成员：`ZRANGEBYSCORE salary -inf 2500 WITHSCORES`
+9. zrem 移除有序集中的一个或多个成员：`zrem salary kuangshen`
+10. zcard 命令用于计算集合中元素的数量：`zcard salary`
+11. zcount 计算有序集合中指定分数区间的成员数量：`ZCOUNT myset 1 3`
+12. zrank 返回有序集中指定成员的排名。其中有序集成员按分数值递增(从小到大)顺序排列：`ZRANGE salary 0 -1 WITHSCORES`
+13. zrevrank 返回有序集中成员的排名。其中有序集成员按分数值递减(从大到小)排序：`ZREVRANK salary kuangshen`
+14. 应用
+    - 和set相比，sorted set增加了一个权重参数score，使得集合中的元素能够按score进行有序排列，比如 一个存储全班同学成绩的sorted set，其集合value可以是同学的学号，而score就可以是其考试得分， 这样在数据插入集合的时候，就已经进行了天然的排序。可以用sorted set来做带权重的队列，比如普 通消息的score为1，重要消息的score为2，然后工作线程可以选择按score的倒序来获取工作任务。让 重要的任务优先执行。
+    - 排行榜应用，取TOP N操作 !
 
-可以看到`ORDER BY`默认是按照升序的方式进行排序的，正式的书写方式应该是在字段后加上关键字`ASC`，即`ORDER BY sale_price ASC`。
-
-如果我们希望按照降序的方式，可以通过`DESC`关键词进行指定。
-
-```mysql
-SELECT product_id, product_name, sale_price, purchase_price
- FROM Product
-ORDER BY sale_price DESC;
-
--- 结果如下
-+------------+--------------+------------+----------------+
-| product_id | product_name | sale_price | purchase_price |
-+------------+--------------+------------+----------------+
-| 0005       | 高压锅       |     680000 |           1250 |
-| 0004       | 菜刀         |     300000 |            700 |
-| 0007       | 擦菜板       |      88000 |            198 |
-| 0006       | 叉子         |      50000 |           NULL |
-| 0003       | 运动T恤      |       4000 |           2800 |
-| 0001       | T恤衫        |       1000 |            500 |
-| 0002       | 打孔器       |        500 |            320 |
-| 0008       | 圆珠笔       |        100 |           NULL |
-+------------+--------------+------------+----------------+
-8 rows in set (0.00 sec)
-```
+## Redis的持久化
 
-前面展示了指定一个字段来对表进行排序，实际上我们可以指定多个字段来进行排序。
-
-示例：
-
-```mysql
-SELECT regist_date, product_id, sale_price, purchase_price
- FROM Product
-ORDER BY regist_date, product_id;
-
--- 结果如下
-+-------------+------------+------------+----------------+
-| regist_date | product_id | sale_price | purchase_price |
-+-------------+------------+------------+----------------+
-| 2009-10-10  | 0002       |        500 |            320 |
-| 2009-10-10  | 0003       |       4000 |           2800 |
-| 2009-10-10  | 0004       |     300000 |            700 |
-| 2009-10-10  | 0005       |     680000 |           1250 |
-| 2009-10-10  | 0006       |      50000 |           NULL |
-| 2009-10-10  | 0007       |      88000 |            198 |
-| 2009-10-10  | 0008       |        100 |           NULL |
-| 2021-10-30  | 0001       |       1000 |            500 |
-+-------------+------------+------------+----------------+
-```
+Redis 是内存数据库，如果不将内存中的数据库状态保存到磁盘，那么一旦服务器进程退出，服务器中的数据库状态也会消失。所以 Redis 提供了持久化功能!
 
-可以看到先按照`regist_date`的大小进行排序，在字段`regist_date`中具有相同的值的行，接着会按照`product_id`进行排序。
-
-使用含有 NULL 的列作为排序键时，NULL 会在结果的开头或末尾汇总显示。
-
-在`ORDER BY`子句中可以使用`SELECT`子句中定义的别名。
-
-```mysql
--- 将product_id命名为ID，然后按照ID进行排序
-SELECT product_id as ID, product_name, sale_price, purchase_price
- FROM Product
-ORDER BY ID;
-
--- 结果如下
-+------+--------------+------------+----------------+
-| ID   | product_name | sale_price | purchase_price |
-+------+--------------+------------+----------------+
-| 0001 | T恤衫        |       1000 |            500 |
-| 0002 | 打孔器       |        500 |            320 |
-| 0003 | 运动T恤      |       4000 |           2800 |
-| 0004 | 菜刀         |     300000 |            700 |
-| 0005 | 高压锅       |     680000 |           1250 |
-| 0006 | 叉子         |      50000 |           NULL |
-| 0007 | 擦菜板       |      88000 |            198 |
-| 0008 | 圆珠笔       |        100 |           NULL |
-+------+--------------+------------+----------------+
-8 rows in set (0.00 sec)
-```
+### **RDB(Redis DataBase)**
 
-为什么`ORDER BY`中可以使用`SELECT`定义的别名呢？
+* 在指定的时间间隔内将内存中的数据集快照写入磁盘，也就是行话讲的Snapshot快照，它恢复时是将快照文件直接读到内存里。
 
-这是因为在MySQL中，`ORDER BY `的执行次序在`SELECT`之后。
+* Redis会单独创建(fork)一个子进程来进行持久化，会先将数据写入到一个临时文件中，待持久化过程 都结束了，再用这个临时文件替换上次持久化好的文件。整个过程中，主进程是不进行任何IO操作的。 这就确保了极高的性能。如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那 RDB方式要比AOF方式更加的高效。RDB的缺点是最后一次持久化后的数据可能丢失。
 
+* Fork的作用是复制一个与当前进程一样的进程。新进程的所有数据(变量，环境变量，程序计数器等) 数值都和原进程一致，但是是一个全新的进程，并作为原进程的子进程。
 
+* 触发条件机制，120秒内修改10次则触发RDB，`save 120 10` 
 
-#### 1.4.5 数据的插入及更新
+* 禁用RDB持久化的策略，只要不设置任何save指令，或者给save传入一个空字符串参数
 
-##### 1.4.5.1 数据的插入
 
-通过命令`INSERT`，可以向表中插入数据：
 
-```mysql
--- 往表中插入一行数据
-INSERT INTO <表名> (字段1, 字段2, 字段3, ……) VALUES (值1, 值2, 值3, ……);
+* **优点:**
+  * 适合大规模的数据恢复 
 
--- 往表中插入多行数据
-INSERT INTO <表名> (字段1, 字段2, 字段3, ……) VALUES 
-	(值1, 值2, 值3, ……),
-	(值1, 值2, 值3, ……),
-	...
-	;
-```
+  * 对数据完整性和一致性要求不高
 
-示例：
-
-1. 创建表并插入数据
-
-```mysql
--- 创建表
-CREATE TABLE ProductIns
-(product_id CHAR(4) NOT NULL,
- product_name VARCHAR(100) NOT NULL,
- product_type VARCHAR(32) NOT NULL,
- sale_price INTEGER DEFAULT 0, -- DEFAULT 0：表示将字段sale_price的默认值设为0
- purchase_price INT ,
- regist_date DATE ,
- PRIMARY KEY (product_id));
- 
--- 通过单行方式插入
-INSERT INTO 
- ProductIns(product_id, product_name, product_type, sale_price, purchase_price, regist_date)
- VALUES ('0001', '打孔器', '办公用品', 500, 320, '2009-09-11');
- 
--- 当对表插入全字段时，可以省略表后的字段清单
-INSERT INTO ProductIns VALUES('0002', '高压锅', '厨房用具', 6800, 5000, '2009-01-15');
-  
--- 通过多行方式插入
-INSERT INTO ProductIns VALUES 
- ('0003', '菜刀', '厨房用具', 3000, 2800, '2009-09-20'),
- ('0004', '订书机', '办公用品', 100, 50, '2009-09-11'),
- ('0005', '裙子', '衣服', 4100, 3200, '2009-01-23'),
- ('0006', '运动T恤', '衣服', 4000, 2800, NULL),
- ('0007', '牙刷', '日用品', 20, 10, '2010-03-22');
-```
+* **缺点:**
 
-```mysql
-SELECT * FROM ProductIns;
-
--- 结果如下
-+------------+--------------+--------------+------------+----------------+-------------+
-| product_id | product_name | product_type | sale_price | purchase_price | regist_date |
-+------------+--------------+--------------+------------+----------------+-------------+
-| 0001       | 打孔器       | 办公用品     |        500 |            320 | 2009-09-11  |
-| 0002       | 高压锅       | 厨房用具     |       6800 |           5000 | 2009-01-15  |
-| 0003       | 菜刀         | 厨房用具     |       3000 |           2800 | 2009-09-20  |
-| 0004       | 订书机       | 办公用品     |        100 |             50 | 2009-09-11  |
-| 0005       | 裙子         | 衣服         |       4100 |           3200 | 2009-01-23  |
-| 0006       | 运动T恤      | 衣服         |       4000 |           2800 | NULL        |
-| 0007       | 牙刷         | 日用品       |         20 |             10 | 2010-03-22  |
-+------------+--------------+--------------+------------+----------------+-------------+
-7 rows in set (0.00 sec)
-```
+  * 在一定间隔时间做一次备份，所以如果redis意外down掉的话，就会丢失最后一次快照后的所有修改 
 
-2. 插入NULL
+  * Fork的时候，内存中的数据被克隆了一份，大致2倍的膨胀性需要考虑。
 
-   `INSERT `语句中想给某一列赋予**NULL**值时，可以直接在` VALUES`子句的值清单中写入**NULL**。
+### **AOF(Append Only File)**
 
-```mysql
-INSERT INTO ProductIns VALUES ('0008', '叉子', '厨房用具', 500, NULL, '2009-09-20');
-```
+以日志的形式来记录每个写操作，将Redis执行过的所有指令记录下来(读操作不记录)，只许追加文件 但不可以改写文件，redis启动之初会读取该文件重新构建数据，换言之，redis重启的话就根据日志文件 的内容将写指令从前到后执行一次以完成数据的恢复工作
 
-3. 插入默认值
+* **重写原理:**
+  * AOF 文件持续增长而过大时，会fork出一条新进程来将文件重写(也是先写临时文件最后再 rename)，遍历新进程的内存中数据，每条记录有一条的Set语句。重写aof文件的操作，并没有读取旧 的aof文件，这点和快照有点类似!
 
-   在前面我们创建表时，字段sale_price包含了一条约束条件，默认为0。我们在插入数据时，可以直接用`DEFAULT`对该字段赋值。前提是，该字段被指定了默认值。
+* **触发机制:**
+  * Redis会记录上次重写时的AOF大小
 
-```mysql
--- 通过显式方法设定默认值
-INSERT INTO 
- ProductIns (product_id, product_name, product_type, sale_price, purchase_price, regist_date)
- VALUES ('0009', '擦菜板', '厨房用具', DEFAULT, 790, '2009-04-28');
+* **优点:**
 
--- 通过隐式方法插入默认值
-INSERT INTO 
- ProductIns (product_id, product_name, product_type, purchase_price, regist_date)
- VALUES ('0010', '擦菜板', '厨房用具', 790, '2009-04-28');
-```
+  - 每修改同步:appendfsync always 同步持久化，每次发生数据变更会被立即记录到磁盘，性能较差 但数据完整性比较好
 
+  - 每秒同步: appendfsync everysec 异步操作，每秒记录 ，如果一秒内宕机，有数据丢失
 
+  - 不同步: appendfsync no 从不同步
 
-##### 1.4.5.2 数据的删除
+* 缺点:
 
-通过`DROP TABLE`或者`DELETE`语句，可以对表进行删除，但二者存在一定的区别。
+  - 相同数据集的数据而言，aof 文件要远大于 rdb文件，恢复速度慢于 rdb。
 
-+ `DROP TABLE` 语句可以将表完全删除。
-+ `DELETE` 语句会留下表结构，而删除表中的全部数据。
+  - Aof 运行效率要慢于 rdb，每秒同步策略效率较好，不同步效率和rdb相同。
 
-无论通过哪种方式删除，数据都是难以恢复的。
 
-1. 通过`DROP`进行删除
 
-   语法结构为：
+## **Redis事务**
 
-```mysql
-DROP <表名>;
-```
+Redis 事务的本质是一组命令的集合。事务支持一次执行多个命令，一个事务中所有命令都会被序列 化。在事务执行过程，会按照顺序串行化执行队列中的命令，其他客户端提交的命令请求不会插入到事 务执行命令序列中
+
+* Redis事务没有隔离级别的概念:批量操作在发送 EXEC 命令前被放入队列缓存，并不会被实际执行!
+
+* Redis不保证原子性：Redis中，单条命令是原子性执行的，但事务不保证原子性，且没有回滚。事务中任意命令执行失败，其 余的命令仍会被执行
 
-2. 通过`DELETE`进行删除
+* **Redis事务相关命令**
 
-   语法结构如下，记得要加`FROM`：
+  - 监视一或多个key,如果在事务执行之前，被监视的key被其他命令改动，则 事务被打断 ( 类似乐观锁 )：`watch key1 key2 ...` 
 
-```mysql
-DELETE FROM <表名>;
+  - 标记一个事务块的开始( queued )：`multi`  
+
+  - 执行所有事务块的命令 ( 一旦执行exec后，之前加的监控锁都会被取消掉 )：`exec` 
+
+  - 取消事务，放弃事务块中的所有命令 unwatch # 取消watch对所有key的监控：`discard` 
+
+* Redis事务的三个阶段
+
+  - 开始事务
+
+  - 命令入队
+
+  - 执行事务
+
+* 注意
+
+  * 若在事务队列中存在命令性错误(类似于java编译性错误)，则执行EXEC命令时，所有命令都不会 执行
+
+  * 若在事务队列中存在语法性错误(类似于java的1/0的运行时异常)，则执行EXEC命令时，其他正确 命令会被执行，错误命令抛出异常。
+
+  * 一但执行 EXEC 开启事务的执行后，无论事务使用执行成功， WARCH 对变量的监控都将被取消。 故当事务执行失败后，需重新执行WATCH命令对变量进行监控，并开启新的事务进行操作
+
+![image-20211216230529614](D:/Wechat_File/WeChat Files/chengyujun831647/FileStorage/File/2021-12/img/Task02 数据库的基本使用/image-20211216230529614-9667131-9708588.png)
+
+
+
+**Redis发布订阅**
+
+* client2 、 client5 和 client1订阅这个频道channel1
+
+
+
+* 当有新消息通过 PUBLISH 命令发送给频道 channel1 时， 这个消息就会被发送给订阅它的三个客户 端:
+
+
+
+* 应用：广泛用于构建即时通信应用，比如网络聊天室(chatroom)和实时广播、实时提醒等
+
+
+
+## **Redis主从复制**
+
+主从复制，是指将一台Redis服务器的数据，复制到其他的Redis服务器。前者称为主节点 (master/leader)，后者称为从节点(slave/follower);数据的复制是单向的，只能由主节点到从节点。 Master以写为主，Slave 以读为主。
+
+* 主从复制的作用：
+
+  * 数据冗余:主从复制实现了数据的热备份，是持久化之外的一种数据冗余方式
+
+  * 故障恢复:当主节点出现问题时，可以由从节点提供服务，实现快速的故障恢复;实际上是一种服务 的冗余
+
+  * 负载均衡:在主从复制的基础上，配合读写分离，可以由主节点提供写服务，由从节点提供读服务 (即写Redis数据时应用连接主节点，读Redis数据时应用连接从节点)，分担服务器负载;尤其是在写 少读多的场景下，通过多个从节点分担读负载，可以大大提高Redis服务器的并发量
+
+  * 高可用基石:除了上述作用以外，主从复制还是哨兵和集群能够实施的基础，因此说主从复制是 Redis高可用的基础
+
+## **缓存穿透和雪崩**
+
+### **缓存穿透**
+
+用户想要查询一个数据，发现redis内存数据库没有，也就是缓存没有命中，于 是向持久层数据库查询。发现也没有，于是本次查询失败。当用户很多的时候，缓存都没有命中，于是 都去请求了持久层数据库。这会给持久层数据库造成很大的压力，这时候就相当于出现了缓存穿透。
+
+* 解决方案：
+
+  * 布隆过滤器：布隆过滤器是一种数据结构，对所有可能查询的参数以hash形式存储，在控制层先进行校验，不符合则 丢弃，从而避免了对底层存储系统的查询压力;
+
+  * 缓存空对象：当存储层不命中后，即使返回的空对象也将其缓存起来，同时会设置一个过期时间，之后再访问这个数
+    据将会从缓存中获取，保护了后端数据源
+
+### **缓存击穿**
+
+缓存击穿，是指一个key非常热点，在不停的扛着大并发，大并发集中 对这一个点进行访问，当这个key在失效的瞬间，持续的大并发就穿破缓存，直接请求数据库，就像在一 个屏障上凿开了一个洞。
+
+当某个key在过期的瞬间，有大量的请求并发访问，这类数据一般是热点数据，由于缓存过期，会同时访 问数据库来查询最新数据，并且回写缓存，会导使数据库瞬间压力过大。
+
+* 解决方案：
+  * 设置热点数据永不过期
+
+### **缓存雪崩**
+
+缓存雪崩，是指在某一个时间段，缓存集中过期失效。
+
+比如在写本文的时候，马上就要到双十二零点，很快就会迎来一波抢购，这波商品时间比较集中的放入了缓存，假设缓存一个小时。那么到了凌晨一点钟的时候，这批商品的缓存就都过期了。而对这批商品的访问查询，都落到了数据库上，对于数据库而言，就会产生周期性的压力波峰。于是所有的请求都会达到存储层，存储层的调用量会暴增，造成存储层也会挂掉的情况。
+
+* 解决方案
+
+  * **redis高可用** 这个思想的含义是，既然redis有可能挂掉，那我多增设几台redis，这样一台挂掉之后其他的还可以继续工作，其实就是搭建的集群。
+  * **限流降级**：在缓存失效后，通过加锁或者队列来控制读数据库写缓存的线程数量。比如对 某个key只允许一个线程查询数据和写缓存，其他线程等待。
+* **数据预热**：在正式部署之前，我先把可能的数据先预先访问一遍，这样部分可能大量访问的数 据就会加载到缓存中。在即将发生大并发访问前手动触发加载缓存不同的key，设置不同的过期时间，让 缓存失效的时间点尽量均匀。
+
+
+
+
+
+## Python连接Redis
+
+### **直连模式**
+
+```
+import redis
+
+r = redis.Redis(host='127.0.0.1',port=6379,db=0,password='')
+r.set('name':'jiangyou')
+print(r.get('name'))
 ```
+
+### **连接池模式**
 
-​		同时，也可以通过`WHERE`语句来指定删除的条件：
+```
+import redis
 
-```mysql
-DELETE FROM <表名>
-	WHERE <条件>;
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,password="",decode_responses=True, max_connections=10)
+r1 = redis.Redis(connection_pool=pool)   #  第一个客户端访问
+r2 = redis.Redis(connection_pool=pool)   #  第二个客户端访问
 ```
+
+### **基本操作**
 
-​		需要注意的是，`DELETE`语句的删除对象并不是表或者列，而是记录（行）。
-
-示例：
-
-```mysql
-SELECT * FROM Product;
-
--- 结果如下
-mysql> SELECT * FROM Product;
-+------------+--------------+--------------+------------+----------------+-------------+
-| product_id | product_name | product_type | sale_price | purchase_price | regist_date |
-+------------+--------------+--------------+------------+----------------+-------------+
-| 0001       | T恤衫        | 衣服         |       1000 |            500 | 2009-09-20  |
-| 0002       | 打孔器       | 办公用品     |        500 |            320 | 2009-09-11  |
-| 0003       | 运动T恤      | 衣服         |       4000 |           2800 | NULL        |
-| 0004       | 菜刀         | 厨房用具     |       3000 |           2800 | 2009-09-20  |
-| 0005       | 高压锅       | 厨房用具     |       6800 |           5000 | 2009-01-15  |
-| 0006       | 叉子         | 厨房用具     |        500 |           NULL | 2009-09-20  |
-| 0007       | 擦菜板       | 厨房用具     |        880 |            790 | 2008-04-28  |
-| 0008       | 圆珠笔       | 办公用品     |        100 |           NULL | 2009-11-11  |
-+------------+--------------+--------------+------------+----------------+-------------+
-8 rows in set (0.00 sec)
-
--- 删除销售价格大于等于4000的行
-DELETE FROM Product
- WHERE sale_price >= 4000;
-
--- 结果如下
-mysql> SELECT * FROM Product;
-+------------+--------------+--------------+------------+----------------+-------------+
-| product_id | product_name | product_type | sale_price | purchase_price | regist_date |
-+------------+--------------+--------------+------------+----------------+-------------+
-| 0001       | T恤衫        | 衣服         |       1000 |            500 | 2009-09-20  |
-| 0002       | 打孔器       | 办公用品     |        500 |            320 | 2009-09-11  |
-| 0004       | 菜刀         | 厨房用具     |       3000 |           2800 | 2009-09-20  |
-| 0006       | 叉子         | 厨房用具     |        500 |           NULL | 2009-09-20  |
-| 0007       | 擦菜板       | 厨房用具     |        880 |            790 | 2008-04-28  |
-| 0008       | 圆珠笔       | 办公用品     |        100 |           NULL | 2009-11-11  |
-+------------+--------------+--------------+------------+----------------+-------------+
-6 rows in set (0.00 sec)
+#### **String操作**
+
 ```
+import redis
+
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,password="",decode_responses=True,max_connections=10)
+r = redis.StrictRedis(connection_pool=pool)
 
-3. 通过`TRUNCATE`进行删除
-
-   在MySQL中，还存在一种删除表的方式，就是利用`TRUNCATE`语句。它的功能和`DROP`类似，但是不能通过`WHERE`指定条件，优点是速度比`DROP`快得多。
-
-```mysql
-TRUNCATE Product;
-
--- 结果如下
-mysql> SELECT * FROM Product;
-Empty set (0.00 sec)
-
-mysql> DESC Product;
-+----------------+--------------+------+-----+---------+-------+
-| Field          | Type         | Null | Key | Default | Extra |
-+----------------+--------------+------+-----+---------+-------+
-| product_id     | char(4)      | NO   | PRI | NULL    |       |
-| product_name   | varchar(100) | NO   |     | NULL    |       |
-| product_type   | varchar(32)  | NO   |     | NULL    |       |
-| sale_price     | int          | YES  |     | NULL    |       |
-| purchase_price | int          | YES  |     | NULL    |       |
-| regist_date    | date         | YES  |     | NULL    |       |
-+----------------+--------------+------+-----+---------+-------+
-6 rows in set (0.00 sec)
+r.set('name','jiang')
+r.append("name","you") # 在redis name对应的值后面追加内容
 ```
 
+#### Hash操作
 
+```
+import redis
+
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,password="",decode_responses=True,max_connections=10)
+r = redis.StrictRedis(connection_pool=pool)
 
-##### 1.4.5.3 数据的更新
+r.hset('user1','name','zhangsan')   # user1对应的hash中设置一个键值对（不存在，则创建；否则，修改）
+r.hset('user1','age','22')          # user1对应的hash中设置一个键值对（不存在，则创建；否则，修改）
+```
 
-当我们使用`INSERT`语句插入错误的数据后，若我们不想删除后从新插入，那就要使用到`UPDATE`语句。
+#### **List操作**
 
-1. 基本用法
+```
+import redis
 
-   `UPDATE`的语法结构如下：
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,password="",decode_responses=True,max_connections=10)
+r = redis.StrictRedis(connection_pool=pool)
 
-```mysql
-UPDATE <表名>
-	SET <字段名> = <表达式>;
+r.lpush('database','sql','mysql','redis')     #   在database对应的list中添加元素，每个新的元素都添加到列表的最左边
 ```
 
-​		示例：
-
-```mysql
--- 由于前面演示删除语句时，表Product的内容已清空
--- 所以，这里从新进行数据插入
-INSERT INTO Product VALUES
-  ('0001', 'T恤衫', '衣服', 1000, 500, '2009-09-20'),
-  ('0002', '打孔器', '办公用品', 500, 320, '2009-09-11'),
-  ('0003', '运动T恤', '衣服', 4000, 2800, NULL),
-  ('0004', '菜刀', '厨房用具', 3000, 2800, '2009-09-20'),
-  ('0005', '高压锅', '厨房用具', 6800, 5000, '2009-01-15'),
-  ('0006', '叉子', '厨房用具', 500, NULL, '2009-09-20'),
-  ('0007', '擦菜板', '厨房用具', 880, 790, '2008-04-28'),
-  ('0008', '圆珠笔', '办公用品', 100, NULL,'2009-11-11')
- ;
- 
--- 修改表中所有行regist_date的值
-UPDATE Product
- SET regist_date = '2009-10-10';
-
--- 结果如下
-mysql> SELECT * FROM Product;
-+------------+--------------+--------------+------------+----------------+-------------+
-| product_id | product_name | product_type | sale_price | purchase_price | regist_date |
-+------------+--------------+--------------+------------+----------------+-------------+
-| 0001       | T恤衫        | 衣服         |       1000 |            500 | 2009-10-10  |
-| 0002       | 打孔器       | 办公用品     |        500 |            320 | 2009-10-10  |
-| 0003       | 运动T恤      | 衣服         |       4000 |           2800 | 2009-10-10  |
-| 0004       | 菜刀         | 厨房用具     |       3000 |           2800 | 2009-10-10  |
-| 0005       | 高压锅       | 厨房用具     |       6800 |           5000 | 2009-10-10  |
-| 0006       | 叉子         | 厨房用具     |        500 |           NULL | 2009-10-10  |
-| 0007       | 擦菜板       | 厨房用具     |        880 |            790 | 2009-10-10  |
-| 0008       | 圆珠笔       | 办公用品     |        100 |           NULL | 2009-10-10  |
-+------------+--------------+--------------+------------+----------------+-------------+
-8 rows in set (0.00 sec)
+#### **Set操作**
+
 ```
+import redis
+
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,password="",decode_responses=True,max_connections=10)
+r = redis.StrictRedis(connection_pool=pool)
 
-2. 指定条件
 
-```mysql
-UPDATE <表名>
-	SET <列名> = <表达式>
-	WHERE <条件>;
+r.sadd("name","zhangsan")        #  给name对应的集合中添加元素
+r.sadd("name","zhangsan","lisi","wangwu")
+
+
 ```
+
+#### **管道操作**
 
-​		示例：
+Redis 模块默认在执行每次请求都会向连接池请求创建连接和断开申请操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作(即为一次操作)。
 
-```mysql
-UPDATE Product
- SET regist_date = '2021-10-30'
- WHERE product_id = '0001';
 ```
+import redis
 
-​		注意，你也可是使用**NULL**对表进行更新，不过更新的字段必须满足没有**主键**和**NOT NULL**的约束条件。
+pool = redis.ConnectionPool(host="127.0.0.1",port=6379,db=0,decode_responses=True,max_connections=10)
+r = redis.StrictRedis(connection_pool=pool)
 
-3. 多列更新
+pipe = r.pipeline(transaction=True)
 
-   多列更新只需要用逗号（，）连接更改的字段即可。
+pipe.set('name', 'jiangyou')
+pipe.set('age', 'age')
+pipe.execute()
 
-```mysql
-UPDATE Product
- SET 
- 	sale_price = sale_price * 10,
-  purchase_price = purchase_price / 2
- WHERE product_type = '厨房用具';
+print(r.mget("name","age"))
 ```
 
