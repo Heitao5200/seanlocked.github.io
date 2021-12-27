@@ -4,41 +4,41 @@
 
 通常情况下，程序将内存视为一个非常大的数组，数组的元素是由一个个的字节组成，每个字节都由一个唯一的数字来表示，我们称为地址（address），这些所有的地址的集合就称为虚拟地址空间（virtual address space）。
 
-<img src="README.assets/image-20211217235858326.png" alt="image-20211217235858326" style="zoom:50%;" />
+<img src="README.assets/image-20211217235858326.png" alt="image-20211217235858326"  />
 
 **什么是字节？**
 
-<img src="README.assets/image-20211217235751398.png" alt="image-20211217235751398" style="zoom:50%;" />
+<img src="README.assets/image-20211217235751398.png" alt="image-20211217235751398"  />
 
 **二进制、十进制与十六进制**
 
-<img src="README.assets/image-20211218000302445.png" alt="image-20211218000302445" style="zoom:50%;" />
+<img src="README.assets/image-20211218000302445.png" alt="image-20211218000302445"  />
 
 **二进制与十六进制的互转**
 
-<img src="README.assets/image-20211218000430713.png" alt="image-20211218000430713" style="zoom:50%;" />
+<img src="README.assets/image-20211218000430713.png" alt="image-20211218000430713"  />
 
 **十进制2的次方如何快速转16进制**
 
-<img src="README.assets/image-20211218002234278.png" alt="image-20211218002234278" style="zoom:50%;" />
+<img src="README.assets/image-20211218002234278.png" alt="image-20211218002234278"  />
 
 **十进制与十六进制的转换**
 
-<img src="README.assets/image-20211218002427161.png" alt="image-20211218002427161" style="zoom:50%;" />
+<img src="README.assets/image-20211218002427161.png" alt="image-20211218002427161"  />
 
 **字长决定了计算机虚拟地址空间的长度**
 
-<img src="README.assets/image-20211218002615004.png" alt="image-20211218002615004" style="zoom:50%;" />
+<img src="README.assets/image-20211218002615004.png" alt="image-20211218002615004"  />
 
 32位的程序可以运行在32位和64位的机器上
 
 但是64位的程序只能运行在64位的机器上
 
-<img src="README.assets/image-20211218002751260.png" alt="image-20211218002751260" style="zoom:50%;" />
+<img src="README.assets/image-20211218002751260.png" alt="image-20211218002751260"  />
 
 **大端法与小端法**
 
-<img src="README.assets/image-20211219120400586.png" alt="image-20211219120400586" style="zoom:50%;" />
+<img src="README.assets/image-20211219120400586.png" alt="image-20211219120400586"  />
 
 0x高有效字节->低有效字节
 
@@ -61,13 +61,13 @@ e.g
 
 12345在不同机器上的运行结果
 
-<img src="README.assets/image-20211219122304322.png" alt="image-20211219122304322" style="zoom:50%;" />
+<img src="README.assets/image-20211219122304322.png" alt="image-20211219122304322"  />
 
 指针应该是12345所在的内存地址，不同操作系统由于使用不同的存储分配规则，所以指针的值不同。
 
 而不同位数的操作系统字节模式的不同，导致十六进制的值也是不同的
 
-<img src="README.assets/image-20211219122501869.png" alt="image-20211219122501869" style="zoom:50%;" />
+<img src="README.assets/image-20211219122501869.png" alt="image-20211219122501869"  />
 
 **表示字符串**
 

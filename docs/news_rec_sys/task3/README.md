@@ -413,22 +413,98 @@ userinfo.user_read
       user_mysql_server.user_exposure_to_mysql()
       --------------------------------------------------------------
       def user_exposure_to_mysql(self):
-          exposure = UserExposure()   #  为了通过__init__()函数构建表
+          # 为了通过__init__()函数构建表
+          # 其实不太理解UserExposure()这个函数，需要去了解一下sqlalchemy，这里大概就是建表的意思
+          exposure = UserExposure()   
           vals = []
           keys = self.user_exposure_redis.keys()
+          #这个keys大概是这样的
+          #(user_exposure:4568721114285477889
+          #,user_exposure:4569404916662013953
+          #,...)
           for key in keys:
+              #返回redis.db3-user_exposure，smembers好像是查看collection中这个key的所有成员
               news_list = self.user_exposure_redis.smembers(key)
+              #这个news_list大概是这样的
+              #row	value
+              #1	fe9f7a59-5287-460c-a361-d12b368fb9e0:1639712648453
+              #2	f41b0394-cbc3-41c7-9911-17a8229048e9:1639712651902
+              #...
+              #n	news_id:时间戳
+              #分割一下取后面那部分
               user_id = key.split(":")[1]  
               val = self._transfor_json_for_user(user_id,news_list)
-              vals +=val
-  
-          self.user_exposure_sql_session.bulk_insert_mappings(UserExposure,vals)
-          self.user_exposure_sql_session.commit()
+              +++++++++++++++++++++++++++++++++++++++++++++++++++++
+                  def _transfor_json_for_user(self,user_id,news_list):
+                      """
+                      针对每个用户转换成批量存储的形式
+                      """
+                      # 对用户的每一个曝光进行存储
+                      vals = []
+                      for item in news_list:
+                          item = item.split(":")
+                          vals.append({
+                              "userid":user_id,
+                              "newid":item[0],
+                              "curtime":item[1]})
+                      return vals
+                  #vals 
+                  #[{"user_id":xxxx,"newid":xxxx,"curtime":xxx},{"user_id":yyyy,"newid":yyyy,"curtime":yyy},{"user_id":zzzz,"newid":zzzz,"curtime":zzz}]
+      		+++++++++++++++++++++++++++++++++++++++++++++++++++++
+              vals += val
+              #接一串字典
+              
+  		#调用连接userinfo数据库的session，然后bulk_insert_mappings()这个应该是插入数据吧
+     		self.user_exposure_sql_session.bulk_insert_mappings(UserExposure,vals)
+          #提交这个session
+      	self.user_exposure_sql_session.commit()
       --------------------------------------------------------------
   ```
 
   
 
 - `update_user_protrail_from_register_table()`方法（代码位于`materials/user_process/user_protrail.py`）：将当天新用户（注册用户）和老用户的静态信息和动态信息（阅读、点赞、收藏等相关指标数据）都添加到用户画像库中（MongoDB的`NewsRecSys`库的`UserProtrail`集合）
+
+  ```python
+  from dao.mongo_server import MongoServer
+  from dao.mysql_server import MysqlServer
+  from dao.entity.register_user import RegisterUser
+  from dao.entity.user_read import UserRead
+  from dao.entity.user_likes import UserLikes
+  from dao.entity.user_collections import UserCollections
+  
+  #初始化
+  class UserProtrail(object):
+      def __init__(self):
+          self.user_protrail_collection = MongoServer().get_user_protrail_collection()
+          self.material_collection = MongoServer().get_feature_protrail_collection()
+          self.register_user_sess = MysqlServer().get_register_user_session()
+          self.user_collection_sess = MysqlServer().get_user_collection_session()
+          self.user_like_sess = MysqlServer().get_user_like_session()
+          self.user_read_sess = MysqlServer().get_user_read_session()
+          
+          
+  if __name__ == "__main__":
+      user_protrail = UserProtrail().update_user_protrail_from_register_table()
+  	—————————————————————————————————————————————————————————————————————————
+      def update_user_protrail_from_register_table(self):
+          """每天都需要将当天注册的用户添加到用户画像池中
+          """
+          # 遍历注册用户表
+          #self.register_user_sess = MysqlServer().get_register_user_session()
+          for user in self.register_user_sess.query(RegisterUser).all():
+              #将mysql查询出来的结果转换成字典存储
+              user_info_dict = self._user_info_to_dict(user)
+              #self.user_protrail_collection = MongoServer().get_user_protrail_collection()
+              old_user_protrail_dict = self.user_protrail_collection.find_one({"username": user.username})
+              if old_user_protrail_dict is None:
+                  self.user_protrail_collection.insert_one(user_info_dict)
+              else:
+                  # 使用参数upsert设置为true对于没有的会创建一个
+                  # replace_one 如果遇到相同的_id 就会更新
+                  self.user_protrail_collection.replace_one(old_user_protrail_dict, user_info_dict, upsert=True)
+  ```
+
+  
 
 - `_user_info_to_dict()`方法（代码位于`materials/user_process/user_protrail.py`）：将用户基本属性和用户的动态信息进行组合，对于已存在的指标数据（分为爱好和收藏，每个分类都包括历史喜欢最多的Top3的新闻类别、历史喜欢新闻的Top3的关键词、用户喜欢新闻的平均热度、用户15天内喜欢的新闻数量）进行更新，对于未存在的指标数据进行初始化
